@@ -4,6 +4,10 @@ import { api } from '../../shared/api';
 import { isClerkConfigured } from '../../shared/clerk';
 import type { Checkin, Profile, ProgressReview } from '../../shared/types';
 
+// `useAuth()` only works inside <ClerkProvider>, which main.tsx only renders when Clerk is
+// configured. Splitting into this outer guard + an inner component means the hook-calling
+// component is simply never mounted when it wouldn't be safe to call it — same pattern used by
+// MealPlannerPage and AccountPage.
 export function ProgressPage() {
   if (!isClerkConfigured) return <section className="empty"><h1>Sign-in is not configured.</h1><p>Set <code>VITE_CLERK_PUBLISHABLE_KEY</code> to enable progress tracking.</p></section>;
   return <ProgressContent />;
@@ -82,6 +86,8 @@ function ProgressContent() {
 
   if (!isLoaded || isLoading) return <section className="empty"><p>Loading your progress…</p></section>;
 
+  // Guests see the real form and can fill it in, but submitting never calls the API (which would
+  // 401 anyway) — it just reveals the "please sign in" prompt below instead of a dead end.
   if (!isSignedIn) return <>
     <section className="page-intro">
       <span className="eyebrow">Progress</span>

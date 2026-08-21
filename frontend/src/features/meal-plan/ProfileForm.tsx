@@ -4,6 +4,9 @@ import type { Goal, Profile } from '../../shared/types';
 const activityLevels: Array<Profile['activity']> = ['low', 'light', 'moderate', 'high'];
 const goals: Goal[] = ['lose', 'maintain', 'gain'];
 
+// Doubles as both the first-time creation form and the "edit profile" form — pass `initialProfile`
+// to pre-fill it for editing; omit it for a blank create form. The caller decides which API call
+// `onSave` makes, this component only collects the fields.
 export function ProfileForm({ onSave, isSaving, initialProfile, submitLabel = 'Save profile', savingLabel = 'Saving…' }: {
   onSave: (profile: Omit<Profile, '_id'>) => void;
   isSaving: boolean;

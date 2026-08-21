@@ -43,6 +43,9 @@ const mealTemplates: MealTemplate[] = [
   },
 ];
 
+// Mifflin-St Jeor formula for resting energy expenditure, scaled by activity level, then adjusted
+// for the goal direction. Protein/carbs/fats are then derived from that calorie target, not tracked
+// independently — this keeps the macros internally consistent with each other.
 export function getTargets(profile: ProfileInput) {
   const base = 10 * profile.weightKg + 6.25 * profile.heightCm - 5 * profile.age + (profile.sex === 'male' ? 5 : -161);
   const factor = { low: 1.2, light: 1.375, moderate: 1.55, high: 1.725 }[profile.activity];

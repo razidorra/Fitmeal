@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import type { Recipe } from './recipes';
 
 export function RecipeModal({ recipe, onClose }: { recipe: Recipe; onClose: () => void }) {
+  // Lock page scroll while the modal is open, and let Escape close it like the backdrop click does.
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
