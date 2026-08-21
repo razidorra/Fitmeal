@@ -7,8 +7,6 @@ function PhonePreview() { return <div className="phone"><div className="phone-no
 
 function FaqItem({ question, answer, isOpen, onOpen }: { question: string; answer: string; isOpen: boolean; onOpen: () => void }) { return <article className={`faq-item ${isOpen ? 'is-open' : ''}`}><button type="button" aria-expanded={isOpen} onClick={onOpen}>{question}</button>{isOpen && <p>{answer}</p>}</article>; }
 
-function SiteFooter() { return <footer className="site-footer"><nav><a href="#features">About FitMeal</a><a href="#features">Recipes</a><a href="#how-it-works">Nutrition</a><Link to="/planner">Meal Planner</Link><Link to="/progress">Progress</Link></nav><div className="social-links"><a href="https://facebook.com" aria-label="Facebook">f</a><a href="https://instagram.com" aria-label="Instagram">◎</a><a href="https://x.com" aria-label="X">𝕏</a><a href="https://github.com" aria-label="GitHub">◉</a><a href="https://youtube.com" aria-label="YouTube">▶</a></div><p>© {new Date().getFullYear()} FitMeal. Eat well, plan simply, feel better.</p></footer>; }
-
 export function HomePage() {
   const [openQuestion, setOpenQuestion] = useState<string | null>(null);
   const [showAllQuestions, setShowAllQuestions] = useState(false);
@@ -26,6 +24,5 @@ export function HomePage() {
     <Reveal className="mobile-soon"><span className="coming-soon">Coming soon</span><h2>FitMeal will also be available as a mobile app</h2><p>We are planning a simple FitMeal app for your phone. It will give you quick access to recipes, nutrition tracking and your personal meal plan while you are on the go.</p><div className="mobile-steps">{[['1', 'Download the app', 'Get FitMeal from your phone’s app store when it becomes available.'], ['2', 'Use the same account', 'Log in with your existing FitMeal account—no new profile needed.'], ['3', 'Continue anywhere', 'Your planned meals, nutrition entries and progress will stay connected.']].map(([number, title, text]) => <article key={number}><span>{number}</span><h3>{title}</h3><p>{text}</p></article>)}</div><small>The website remains fully usable. The mobile app is a planned additional option and is not available for download yet.</small></Reveal>
     <section className="faq-section"><Reveal><span className="eyebrow">Frequently asked</span><h2>Frequently asked questions</h2></Reveal><Reveal className="faq-list" delay={100}>{faqs.slice(0, showAllQuestions ? faqs.length : 5).map(([question, answer]) => <FaqItem key={question} question={question} answer={answer} isOpen={openQuestion === question} onOpen={() => setOpenQuestion(current => current === question ? null : question)} />)}<button type="button" className="show-more" onClick={() => { setShowAllQuestions(current => !current); setOpenQuestion(null); }}>{showAllQuestions ? 'Show fewer questions' : `See all questions (${faqs.length})`}</button></Reveal></section>
     <Reveal className="final-cta"><h2>Ready to get started?</h2><p>Start exploring healthy meal ideas today.</p><Link className="primary" to="/planner">View meal planner</Link></Reveal>
-    <SiteFooter />
   </>;
 }

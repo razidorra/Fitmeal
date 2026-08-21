@@ -1,8 +1,8 @@
-import { Link } from '@tanstack/react-router';
 import { useState } from 'react';
 import type { Goal } from '../../shared/types';
-import { categoryLabels, goalLabels, recipes, type RecipeCategory } from './recipes';
+import { categoryLabels, goalLabels, recipes, type Recipe, type RecipeCategory } from './recipes';
 import { BoltIcon, ClockIcon, FlameIcon } from './icons';
+import { RecipeModal } from './RecipeModal';
 import './recipes.css';
 
 const goalFilters: Array<Goal | 'all'> = ['all', 'lose', 'maintain', 'gain'];
@@ -11,6 +11,7 @@ const categoryFilters: Array<RecipeCategory | 'all'> = ['all', 'meal', 'fruit', 
 export function RecipesPage() {
   const [selectedGoal, setSelectedGoal] = useState<Goal | 'all'>('all');
   const [selectedCategory, setSelectedCategory] = useState<RecipeCategory | 'all'>('all');
+  const [openRecipe, setOpenRecipe] = useState<Recipe | null>(null);
   const visibleRecipes = recipes.filter((recipe) => (selectedGoal === 'all' || recipe.goal === selectedGoal) && (selectedCategory === 'all' || recipe.category === selectedCategory));
 
   return <>
@@ -28,7 +29,14 @@ export function RecipesPage() {
     {visibleRecipes.length === 0
       ? <p className="recipe-empty">No recipes match that combination yet — try a different goal or type.</p>
       : <section className="recipe-grid" aria-live="polite">
-        {visibleRecipes.map((recipe) => <article className="recipe-card" key={recipe.slug}>
+        {visibleRecipes.map((recipe) => <article
+          className="recipe-card"
+          key={recipe.slug}
+          role="button"
+          tabIndex={0}
+          onClick={() => setOpenRecipe(recipe)}
+          onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); setOpenRecipe(recipe); } }}
+        >
           <div className="recipe-photo">
             <img src={recipe.image} alt={recipe.title} loading="lazy" onError={(event) => { event.currentTarget.style.display = 'none'; }} />
           </div>
@@ -40,8 +48,9 @@ export function RecipesPage() {
             <span><FlameIcon /> {recipe.nutrition.calories} kcal</span>
             <span><BoltIcon /> {recipe.nutrition.protein}g protein</span>
           </div>
-          <Link className="recipe-link" to="/recipes/$recipeSlug" params={{ recipeSlug: recipe.slug }}>Click for ingredients, preparation and nutrition →</Link>
+          <span className="recipe-link">Click for ingredients, preparation and nutrition →</span>
         </article>)}
       </section>}
+    {openRecipe && <RecipeModal recipe={openRecipe} onClose={() => setOpenRecipe(null)} />}
   </>;
 }

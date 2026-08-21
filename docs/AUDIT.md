@@ -1,5 +1,24 @@
 # FitMeal change protocol
 
+## 2026-08-21 — Per-user auth, daily plans, rule-based reviews, and light/dark theming
+
+### Implemented
+
+- Added `clerkUserId` to `Profile` and a shared `requireUserId`/`findOwnedProfile` pair used by every profile/meal-plan/progress/assistant route: each now requires a signed-in session and verifies the record actually belongs to that user (previously `/api/profiles/latest` returned the single most recent profile in the whole database, regardless of who asked).
+- Added `PATCH /api/profiles/:id` so a saved profile can be edited later from the Meal Planner page, instead of being create-once.
+- Meal plans are now one-per-day (`date` field, in the user's own local day): opening the planner on a new day silently generates that day's plan; "Refresh plan" force-regenerates the current day. `GET /api/meal-plans/:profileId/history` powers a "This week / Previous week" view.
+- Added a per-meal "Did you have this, or something else?" confirmation (`PATCH .../meals/:time/confirm`), replacing the earlier always-visible "Choose your own meal" link and a separate whole-day check that was tried and then removed as redundant.
+- **Removed the Gemini dependency from the meal-swap and progress-review features** at the user's request — both are now plain, rule-based, and never depend on any external quota. Swapping a meal keeps the original suggestion's title, ingredients, steps, and photo so both the suggestion and what was actually eaten stay visible. The progress review computes its verdict from real check-in trends (direction vs. goal, magnitude) and generates the written summary from templates, not an AI call.
+- Added a guest mode: signed-out visitors can see and fill in the profile/check-in forms, but submitting shows an inline "please sign in to see your plan/reviews" prompt instead of a wall blocking the form outright.
+- Added a site-wide footer (`SiteFooter.tsx`), previously homepage-only, rendered once in the router layout so it appears on every page.
+- Expanded the recipe collection to 24 entries (10 added this round, several using the user's own supplied photos rather than stock images), and rebuilt the Recipes page to open a modal on click (photo, tags, nutrition, ingredients, preparation) instead of navigating to a full page, with a hover/focus lift effect on each card.
+- Tokenized colors across every stylesheet into CSS custom properties and added a "Warm Light" theme alongside the original "Midnight Gold", toggled via `data-theme` on `<html>` and persisted in `localStorage` (`shared/theme.ts`). The homepage's phone-mockup graphic is deliberately left theme-independent.
+- Added an Account page (`/account`, signed-in only) showing Clerk identity, a today's-plan/last-7-days-progress summary, and the theme toggle; a "Profile" nav link appears only when signed in.
+
+### Deliberate scope boundary
+
+- The AI assistant chat is the only feature still calling Gemini. Its free-tier daily quota can still be exhausted; nothing else in the app is affected when that happens.
+
 ## 2026-08-21 — Profile form, AI assistant, custom meals, and progress review
 
 ### Implemented

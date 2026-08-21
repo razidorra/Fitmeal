@@ -3,7 +3,11 @@ import ReactDOM from 'react-dom/client';
 import { RouterProvider } from '@tanstack/react-router';
 import { ClerkProvider } from '@clerk/react';
 import { router } from './routes/router';
+import { applyTheme, getStoredTheme } from './shared/theme';
 import './styles.css';
+
+// Applied synchronously before the first paint, so there's no flash of the wrong theme on load.
+applyTheme(getStoredTheme());
 
 const clerkPublishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 

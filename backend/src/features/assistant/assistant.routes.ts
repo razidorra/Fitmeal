@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { askGemini, GeminiError } from '../../shared/gemini.js';
+import { requireUserId } from '../../shared/auth.js';
 
 const chatSchema = z.object({
   message: z.string().min(1).max(1000),
@@ -15,6 +16,9 @@ export const assistantRouter = Router();
 
 assistantRouter.post('/chat', async (req, res, next) => {
   try {
+    const userId = requireUserId(req, res);
+    if (!userId) return;
+
     const { message, history } = chatSchema.parse(req.body);
 
     // Gemini uses "model" instead of "assistant" for the AI's turns.

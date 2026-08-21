@@ -4,14 +4,20 @@ import type { Goal, Profile } from '../../shared/types';
 const activityLevels: Array<Profile['activity']> = ['low', 'light', 'moderate', 'high'];
 const goals: Goal[] = ['lose', 'maintain', 'gain'];
 
-export function ProfileForm({ onSave, isSaving }: { onSave: (profile: Omit<Profile, '_id'>) => void; isSaving: boolean }) {
-  const [name, setName] = useState('');
-  const [age, setAge] = useState(30);
-  const [sex, setSex] = useState<Profile['sex']>('female');
-  const [heightCm, setHeightCm] = useState(170);
-  const [weightKg, setWeightKg] = useState(70);
-  const [activity, setActivity] = useState<Profile['activity']>('moderate');
-  const [goal, setGoal] = useState<Goal>('maintain');
+export function ProfileForm({ onSave, isSaving, initialProfile, submitLabel = 'Save profile', savingLabel = 'Saving…' }: {
+  onSave: (profile: Omit<Profile, '_id'>) => void;
+  isSaving: boolean;
+  initialProfile?: Profile;
+  submitLabel?: string;
+  savingLabel?: string;
+}) {
+  const [name, setName] = useState(initialProfile?.name ?? '');
+  const [age, setAge] = useState(initialProfile?.age ?? 30);
+  const [sex, setSex] = useState<Profile['sex']>(initialProfile?.sex ?? 'female');
+  const [heightCm, setHeightCm] = useState(initialProfile?.heightCm ?? 170);
+  const [weightKg, setWeightKg] = useState(initialProfile?.weightKg ?? 70);
+  const [activity, setActivity] = useState<Profile['activity']>(initialProfile?.activity ?? 'moderate');
+  const [goal, setGoal] = useState<Goal>(initialProfile?.goal ?? 'maintain');
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -40,6 +46,6 @@ export function ProfileForm({ onSave, isSaving }: { onSave: (profile: Omit<Profi
         {goals.map((option) => <option key={option} value={option}>{option}</option>)}
       </select>
     </label>
-    <button type="submit" disabled={isSaving}>{isSaving ? 'Saving…' : 'Save profile'}</button>
+    <button type="submit" disabled={isSaving}>{isSaving ? savingLabel : submitLabel}</button>
   </form>;
 }

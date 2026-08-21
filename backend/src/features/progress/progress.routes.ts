@@ -1,14 +1,20 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { Checkin } from './checkin.model.js';
-import { Profile } from '../profile/profile.model.js';
 import { MealPlan } from '../meal-plan/meal-plan.model.js';
-import { askGemini, GeminiError } from '../../shared/gemini.js';
+import { findOwnedProfile } from '../../shared/ownership.js';
+import { requireUserId } from '../../shared/auth.js';
 
 export const progressRouter = Router();
 
 progressRouter.get('/:profileId', async (req, res, next) => {
   try {
+    const userId = requireUserId(req, res);
+    if (!userId) return;
+
+    const profile = await findOwnedProfile(req.params.profileId, userId);
+    if (!profile) { res.status(404).json({ message: 'Profile not found' }); return; }
+
     res.json(await Checkin.find({ profileId: req.params.profileId }).sort({ date: 1 }));
   } catch (error) {
     next(error);
@@ -17,22 +23,76 @@ progressRouter.get('/:profileId', async (req, res, next) => {
 
 progressRouter.post('/', async (req, res, next) => {
   try {
+    const userId = requireUserId(req, res);
+    if (!userId) return;
+
     const data = z.object({ profileId: z.string(), weightKg: z.number().min(30).max(350), note: z.string().max(300).optional() }).parse(req.body);
+    const profile = await findOwnedProfile(data.profileId, userId);
+    if (!profile) { res.status(404).json({ message: 'Profile not found' }); return; }
+
     res.status(201).json(await Checkin.create(data));
   } catch (error) {
     next(error);
   }
 });
 
-const reviewSystemPrompt = "You are FitMeal AI's progress coach. Given a summary of someone's weight check-ins, their goal, and how well their "
-  + "recent custom meal choices matched their nutrition targets, write a short (3-4 sentence), encouraging but honest review: say clearly whether "
-  + 'they look on track for their goal, and if not, suggest one concrete adjustment. Reference the numbers naturally rather than just repeating them. '
-  + 'You are not a doctor: never diagnose, and suggest a qualified professional for anything medical.';
+interface ReviewStats {
+  goal: 'lose' | 'maintain' | 'gain';
+  totalChangeKg: number;
+  weeklyRateKg: number | null;
+  checkinCount: number;
+  onTrack: boolean | null;
+  mealsChecked: number;
+  greatFitCount: number;
+  poorFitCount: number;
+}
 
-// Computes a real weight-trend verdict from check-in history, then asks Gemini to turn it into a short written review.
+// Rule-based review — no AI involved, so it never depends on any external quota. Every sentence
+// here is derived directly from the computed stats, not generated.
+function buildReviewSummary(stats: ReviewStats): string {
+  if (stats.onTrack === null) {
+    return "Not enough check-ins yet to see a trend — log at least one more on a different day so we can measure how you're doing.";
+  }
+
+  const rate = stats.weeklyRateKg ?? 0;
+  const pace = Math.abs(rate).toFixed(1);
+
+  if (stats.onTrack) {
+    let message = `Great work — you're on track for your ${stats.goal} goal, averaging ${pace} kg/week in the right direction. Keep following your plan and stick with your regular check-ins.`;
+    if (stats.mealsChecked > 0 && stats.poorFitCount === 0) message += ' Your logged meal swaps have all been solid fits too — nice consistency.';
+    return message;
+  }
+
+  const suggestions: string[] = [];
+  if (stats.goal === 'lose') {
+    suggestions.push(rate > 0
+      ? "you're actually gaining weight while aiming to lose it — try trimming portion sizes a little, cutting one snack, or adding a short daily walk"
+      : "you're losing weight, but slower than expected — a modest cut to portions or a bit more daily movement should help speed things up");
+  } else if (stats.goal === 'gain') {
+    suggestions.push(rate < 0
+      ? "you're losing weight while aiming to gain — add an extra snack or larger portions, especially protein-rich ones"
+      : "you're gaining, but slower than expected — increase portion sizes a bit or add a calorie-dense snack between meals");
+  } else {
+    suggestions.push(rate > 0
+      ? 'your weight is trending up — scale back portions slightly to stay level'
+      : 'your weight is trending down — add a bit more food to hold steady');
+  }
+
+  if (stats.poorFitCount > 0) {
+    suggestions.push(`${stats.poorFitCount} of your ${stats.mealsChecked} logged meal swap${stats.mealsChecked === 1 ? '' : 's'} ${stats.poorFitCount === 1 ? 'was' : 'were'} flagged as a poor fit for your goal — that's a good place to start`);
+  }
+
+  return `You're not quite on track for your ${stats.goal} goal right now: ${suggestions.join('. ')}. Log another check-in soon to see if the adjustment helps.`;
+}
+
+// Computes a real weight-trend verdict from check-in history and turns it into a tailored,
+// rule-based review — praise when on track, concrete suggestions when not.
 progressRouter.post('/:profileId/review', async (req, res, next) => {
   try {
-    const profile = await Profile.findById(req.params.profileId);
+    const userId = requireUserId(req, res);
+    if (!userId) return;
+
+    const profile = await findOwnedProfile(req.params.profileId, userId);
     if (!profile) { res.status(404).json({ message: 'Profile not found' }); return; }
 
     const checkins = await Checkin.find({ profileId: req.params.profileId }).sort({ date: 1 });
@@ -48,34 +108,25 @@ progressRouter.post('/:profileId/review', async (req, res, next) => {
       weeklyRateKg = Number((totalChangeKg / (daysTracked / 7)).toFixed(2));
     }
 
-    const goalDirection = { lose: -1, maintain: 0, gain: 1 }[profile.get('goal') as 'lose' | 'maintain' | 'gain'];
+    const goal = profile.get('goal') as 'lose' | 'maintain' | 'gain';
+    const goalDirection = { lose: -1, maintain: 0, gain: 1 }[goal];
     let onTrack = true;
     if (weeklyRateKg !== null) {
-      onTrack = profile.get('goal') === 'maintain' ? Math.abs(weeklyRateKg) < 0.3 : weeklyRateKg * goalDirection > 0.05;
+      onTrack = goal === 'maintain' ? Math.abs(weeklyRateKg) < 0.3 : weeklyRateKg * goalDirection > 0.05;
     }
 
     const meals = ((latestPlan?.get('meals') as Array<Record<string, unknown>>) ?? []).filter((meal) => typeof meal.verdict === 'string');
     const greatFitCount = meals.filter((meal) => meal.verdict === 'great fit').length;
     const poorFitCount = meals.filter((meal) => meal.verdict === 'poor fit').length;
 
-    const stats = {
-      goal: profile.get('goal'), firstWeight, latestWeight, totalChangeKg, weeklyRateKg,
+    const stats: ReviewStats = {
+      goal, totalChangeKg, weeklyRateKg,
       checkinCount: checkins.length, onTrack: checkins.length >= 2 ? onTrack : null,
       mealsChecked: meals.length, greatFitCount, poorFitCount,
     };
 
-    const prompt = `Goal: ${stats.goal} weight. Check-ins logged: ${stats.checkinCount}. `
-      + (weeklyRateKg !== null ? `Weight has changed ${totalChangeKg >= 0 ? '+' : ''}${totalChangeKg} kg overall, averaging ${weeklyRateKg} kg/week. `
-        : 'Not enough check-ins yet for a weekly trend. ')
-      + `Custom meal choices reviewed: ${meals.length} (${greatFitCount} great fit, ${poorFitCount} poor fit).`;
-
-    const summary = await askGemini(reviewSystemPrompt, [{ role: 'user', parts: [{ text: prompt }] }]);
-    res.json({ stats, summary: summary || 'Keep logging check-ins so we can build a clearer picture of your trend.' });
+    res.json({ stats: { ...stats, firstWeight, latestWeight }, summary: buildReviewSummary(stats) });
   } catch (error) {
-    if (error instanceof GeminiError) {
-      res.status(error.status).json({ message: error.message });
-      return;
-    }
     next(error);
   }
 });

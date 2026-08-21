@@ -1,8 +1,10 @@
 import { useState, type FormEvent } from 'react';
+import { useAuth } from '@clerk/react';
 import { api } from '../../shared/api';
 import type { ChatMessage } from '../../shared/types';
 
 export function AssistantChat() {
+  const { getToken } = useAuth();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [isSending, setIsSending] = useState(false);
@@ -20,7 +22,7 @@ export function AssistantChat() {
     setErrorMessage('');
 
     try {
-      const { reply } = await api.askAssistant(message, history);
+      const { reply } = await api.askAssistant(await getToken(), message, history);
       setMessages((current) => [...current, { role: 'assistant', content: reply }]);
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'The assistant is unavailable right now.');

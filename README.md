@@ -51,7 +51,7 @@ Never commit `.env` files or API keys.
 
 ## AI assistant (Gemini)
 
-The AI assistant, the "choose your own meal" nutrition check, and the progress review all use Google Gemini. Get a free API key (no credit card needed) at [aistudio.google.com/apikey](https://aistudio.google.com/apikey):
+The AI assistant chat is the only feature that uses Google Gemini — meal swaps and progress reviews are plain, rule-based, and never call any AI. Get a free API key (no credit card needed) at [aistudio.google.com/apikey](https://aistudio.google.com/apikey):
 
 ```env
 # backend/.env
@@ -59,7 +59,11 @@ GEMINI_API_KEY=your-key-here
 GEMINI_MODEL=gemini-flash-latest
 ```
 
-Without a key, these features return a clear "not set up yet" message instead of an error; the rest of the app works normally. Gemini's free tier has a daily quota — once it's used up, the same endpoints return a friendly "usage limit" message until it resets.
+Without a key, the assistant returns a clear "not set up yet" message instead of an error; the rest of the app works normally. Gemini's free tier has a daily quota — once it's used up, the assistant returns a friendly "usage limit" message until it resets; nothing else in the app is affected.
+
+## Appearance
+
+The whole site supports a "Midnight Gold" (dark, default) and "Warm Light" theme, toggled from the Account page (`/account`, signed-in only) and saved per device in `localStorage`. Colors are defined as CSS custom properties in `frontend/src/styles.css`.
 
 ## Clerk authentication
 
@@ -74,22 +78,25 @@ CLERK_PUBLISHABLE_KEY=pk_test_...
 CLERK_SECRET_KEY=sk_test_...
 ```
 
-Restart `npm run dev` after changing environment variables. When both Clerk keys are configured, the frontend shows Clerk login, sign-up, and user-menu components, and the backend enables Clerk middleware. Routes are not protected yet; protect individual routes only when their access rules are defined.
+Restart `npm run dev` after changing environment variables. When both Clerk keys are configured, the frontend shows Clerk login, sign-up, and user-menu components, and the backend enables Clerk middleware. Every profile/meal-plan/progress/assistant route requires a signed-in session and checks that the requested record actually belongs to that user.
 
 ## API routes
 
 | Method | Route | Purpose |
 | --- | --- | --- |
 | GET | `/api/health` | API health check |
-| GET | `/api/profiles/latest` | Read the most recently saved profile |
+| GET | `/api/profiles/latest` | Read the signed-in user's saved profile |
 | POST | `/api/profiles` | Create a profile |
-| POST | `/api/meal-plans/generate/:profileId` | Generate a meal plan for a profile |
+| PATCH | `/api/profiles/:profileId` | Edit a saved profile |
+| POST | `/api/meal-plans/generate/:profileId` | Get-or-create today's plan (pass `regenerate: true` to force a new one) |
 | GET | `/api/meal-plans/latest/:profileId` | Read the most recent meal plan for a profile |
-| POST | `/api/meal-plans/:planId/meals/:time` | Replace a meal slot with a freely-typed meal; Gemini estimates its nutrition and fit |
+| GET | `/api/meal-plans/:profileId/history` | Read recent days' plans for the week view |
+| POST | `/api/meal-plans/:planId/meals/:time` | Replace a meal slot with a freely-typed meal (rule-based, no AI) |
+| PATCH | `/api/meal-plans/:planId/meals/:time/confirm` | Confirm a meal slot was eaten as suggested |
 | GET | `/api/progress/:profileId` | Read weight check-in history |
 | POST | `/api/progress` | Add a weight check-in |
-| POST | `/api/progress/:profileId/review` | Compute a progress verdict and have Gemini summarize it |
-| POST | `/api/assistant/chat` | Ask the FitMeal AI assistant a question |
+| POST | `/api/progress/:profileId/review` | Compute a progress verdict with a rule-based written summary (no AI) |
+| POST | `/api/assistant/chat` | Ask the FitMeal AI assistant a question (uses Gemini) |
 
 ## Documentation
 
