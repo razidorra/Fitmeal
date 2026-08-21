@@ -49,6 +49,18 @@ VITE_API_URL=https://api.example.com/api
 
 Never commit `.env` files or API keys.
 
+## AI assistant (Gemini)
+
+The AI assistant, the "choose your own meal" nutrition check, and the progress review all use Google Gemini. Get a free API key (no credit card needed) at [aistudio.google.com/apikey](https://aistudio.google.com/apikey):
+
+```env
+# backend/.env
+GEMINI_API_KEY=your-key-here
+GEMINI_MODEL=gemini-flash-latest
+```
+
+Without a key, these features return a clear "not set up yet" message instead of an error; the rest of the app works normally. Gemini's free tier has a daily quota — once it's used up, the same endpoints return a friendly "usage limit" message until it resets.
+
 ## Clerk authentication
 
 Clerk is installed for both applications. Create a Clerk application, then copy its keys into the local environment files:
@@ -69,9 +81,15 @@ Restart `npm run dev` after changing environment variables. When both Clerk keys
 | Method | Route | Purpose |
 | --- | --- | --- |
 | GET | `/api/health` | API health check |
-| GET / POST | `/api/profiles` | Read or create profiles |
-| GET / POST | `/api/meal-plans` | Read or generate meal plans |
-| GET / POST | `/api/progress` | Read or add weight check-ins |
+| GET | `/api/profiles/latest` | Read the most recently saved profile |
+| POST | `/api/profiles` | Create a profile |
+| POST | `/api/meal-plans/generate/:profileId` | Generate a meal plan for a profile |
+| GET | `/api/meal-plans/latest/:profileId` | Read the most recent meal plan for a profile |
+| POST | `/api/meal-plans/:planId/meals/:time` | Replace a meal slot with a freely-typed meal; Gemini estimates its nutrition and fit |
+| GET | `/api/progress/:profileId` | Read weight check-in history |
+| POST | `/api/progress` | Add a weight check-in |
+| POST | `/api/progress/:profileId/review` | Compute a progress verdict and have Gemini summarize it |
+| POST | `/api/assistant/chat` | Ask the FitMeal AI assistant a question |
 
 ## Documentation
 

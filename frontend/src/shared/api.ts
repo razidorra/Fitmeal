@@ -1,4 +1,4 @@
-import type { Checkin, MealPlan, Profile } from './types';
+import type { ChatMessage, Checkin, MealPlan, Profile, ProgressReview } from './types';
 
 const apiBaseUrl = (import.meta.env.VITE_API_URL ?? '/api').replace(/\/$/, '');
 
@@ -25,4 +25,7 @@ export const api = {
   generatePlan: (profileId: string) => request<MealPlan>(`/meal-plans/generate/${profileId}`, { method: 'POST' }),
   getCheckins: (profileId: string) => request<Checkin[]>(`/progress/${profileId}`),
   addCheckin: (data: { profileId: string; weightKg: number; note?: string }) => request<Checkin>('/progress', { method: 'POST', body: JSON.stringify(data) }),
+  askAssistant: (message: string, history: ChatMessage[]) => request<{ reply: string }>('/assistant/chat', { method: 'POST', body: JSON.stringify({ message, history }) }),
+  customizeMeal: (planId: string, time: string, description: string) => request<MealPlan>(`/meal-plans/${planId}/meals/${encodeURIComponent(time)}`, { method: 'POST', body: JSON.stringify({ description }) }),
+  getReview: (profileId: string) => request<ProgressReview>(`/progress/${profileId}/review`, { method: 'POST' }),
 };

@@ -1,0 +1,45 @@
+import { useState, type FormEvent } from 'react';
+import type { Goal, Profile } from '../../shared/types';
+
+const activityLevels: Array<Profile['activity']> = ['low', 'light', 'moderate', 'high'];
+const goals: Goal[] = ['lose', 'maintain', 'gain'];
+
+export function ProfileForm({ onSave, isSaving }: { onSave: (profile: Omit<Profile, '_id'>) => void; isSaving: boolean }) {
+  const [name, setName] = useState('');
+  const [age, setAge] = useState(30);
+  const [sex, setSex] = useState<Profile['sex']>('female');
+  const [heightCm, setHeightCm] = useState(170);
+  const [weightKg, setWeightKg] = useState(70);
+  const [activity, setActivity] = useState<Profile['activity']>('moderate');
+  const [goal, setGoal] = useState<Goal>('maintain');
+
+  function handleSubmit(event: FormEvent) {
+    event.preventDefault();
+    onSave({ name, age, sex, heightCm, weightKg, activity, goal });
+  }
+
+  return <form className="profile-form" onSubmit={handleSubmit}>
+    <label>Name<input value={name} onChange={(event) => setName(event.target.value)} required /></label>
+    <label>Age<input type="number" min={16} max={100} value={age} onChange={(event) => setAge(Number(event.target.value))} required /></label>
+    <label>Sex
+      <select value={sex} onChange={(event) => setSex(event.target.value as Profile['sex'])}>
+        <option value="female">Female</option>
+        <option value="male">Male</option>
+        <option value="other">Other</option>
+      </select>
+    </label>
+    <label>Height (cm)<input type="number" min={100} max={250} value={heightCm} onChange={(event) => setHeightCm(Number(event.target.value))} required /></label>
+    <label>Weight (kg)<input type="number" min={30} max={350} value={weightKg} onChange={(event) => setWeightKg(Number(event.target.value))} required /></label>
+    <label>Activity level
+      <select value={activity} onChange={(event) => setActivity(event.target.value as Profile['activity'])}>
+        {activityLevels.map((level) => <option key={level} value={level}>{level}</option>)}
+      </select>
+    </label>
+    <label>Goal
+      <select value={goal} onChange={(event) => setGoal(event.target.value as Goal)}>
+        {goals.map((option) => <option key={option} value={option}>{option}</option>)}
+      </select>
+    </label>
+    <button type="submit" disabled={isSaving}>{isSaving ? 'Saving…' : 'Save profile'}</button>
+  </form>;
+}

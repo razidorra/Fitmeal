@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '../../shared/api';
-import type { Checkin, Profile } from '../../shared/types';
+import type { Checkin, Profile, ProgressReview } from '../../shared/types';
 
 export function ProgressPage() {
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -8,6 +8,9 @@ export function ProgressPage() {
   const [weight, setWeight] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
+  const [review, setReview] = useState<ProgressReview | null>(null);
+  const [isReviewing, setIsReviewing] = useState(false);
+  const [reviewError, setReviewError] = useState('');
 
   useEffect(() => {
     async function loadProgress() {
@@ -43,6 +46,21 @@ export function ProgressPage() {
     }
   }
 
+  async function handleGetReview() {
+    if (!profile) return;
+
+    setIsReviewing(true);
+    setReviewError('');
+
+    try {
+      setReview(await api.getReview(profile._id));
+    } catch (error) {
+      setReviewError(error instanceof Error ? error.message : 'Could not generate your review.');
+    } finally {
+      setIsReviewing(false);
+    }
+  }
+
   if (isLoading) return <section className="empty"><p>Loading your progress…</p></section>;
   if (errorMessage && !profile) return <section className="empty"><h1>Progress unavailable</h1><p>{errorMessage}</p></section>;
   if (!profile) return <section className="empty"><h1>No saved profile found.</h1><p>Progress tracking needs a profile saved in the database.</p></section>;
@@ -50,6 +68,7 @@ export function ProgressPage() {
   const firstWeight = checkins[0]?.weightKg ?? profile.weightKg;
   const latestWeight = checkins.at(-1)?.weightKg ?? profile.weightKg;
   const weightDifference = (latestWeight - firstWeight).toFixed(1);
+  const verdictClass = review?.stats.onTrack === true ? 'verdict-good' : review?.stats.onTrack === false ? 'verdict-poor' : 'verdict-ok';
 
   return <>
     <section className="page-intro">
@@ -69,6 +88,22 @@ export function ProgressPage() {
         <h2>Check-in history</h2>
         {checkins.length ? checkins.slice().reverse().map((checkin) => <div key={checkin._id}><span>{new Date(checkin.date).toLocaleDateString()}</span><strong>{checkin.weightKg} kg</strong></div>) : <p>No check-ins yet — your starting weight is {profile.weightKg} kg.</p>}
       </div>
+    </section>
+    <section className="review">
+      <div className="review-header">
+        <h2>How am I doing?</h2>
+        <button className="primary" onClick={handleGetReview} disabled={isReviewing}>{isReviewing ? 'Reviewing…' : review ? 'Refresh review' : 'Get my review'}</button>
+      </div>
+      {reviewError && <p role="alert">{reviewError}</p>}
+      {review && <>
+        <div className="review-stats">
+          <div><strong>{review.stats.onTrack === null ? '—' : review.stats.onTrack ? 'On track' : 'Adjust plan'}</strong><span>status</span></div>
+          <div><strong>{review.stats.weeklyRateKg === null ? '—' : `${review.stats.weeklyRateKg > 0 ? '+' : ''}${review.stats.weeklyRateKg} kg`}</strong><span>per week</span></div>
+          <div><strong>{review.stats.totalChangeKg > 0 ? '+' : ''}{review.stats.totalChangeKg} kg</strong><span>total change</span></div>
+          <div><strong>{review.stats.mealsChecked}</strong><span>meals checked</span></div>
+        </div>
+        <p className={`review-verdict ${verdictClass}`}>{review.summary}</p>
+      </>}
     </section>
   </>;
 }

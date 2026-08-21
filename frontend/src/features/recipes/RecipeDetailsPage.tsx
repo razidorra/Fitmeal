@@ -12,8 +12,12 @@ export function RecipeDetailsPage() {
 
   return <article className="recipe-details">
     <Link className="back-link" to="/recipes">← All recipes</Link>
+    <div className="recipe-photo recipe-hero">
+      <img src={recipe.image} alt={recipe.title} onError={(event) => { event.currentTarget.style.display = 'none'; }} />
+    </div>
     <span className="recipe-goal">For {goalLabels[recipe.goal]}</span>
     <h1>{recipe.title}</h1>
+    <div className="recipe-tags">{recipe.tags.map((tag) => <span key={tag}>{tag}</span>)}</div>
     <p className="recipe-description">{recipe.description}</p>
     <div className="recipe-summary"><span>{recipe.prepMinutes} min</span><span>{recipe.servings} serving{recipe.servings > 1 ? 's' : ''}</span></div>
     <section className="nutrition-panel"><h2>Nutrition per serving</h2><div><strong>{recipe.nutrition.calories}</strong><span>kcal</span></div><div><strong>{recipe.nutrition.protein}g</strong><span>protein</span></div><div><strong>{recipe.nutrition.carbs}g</strong><span>carbs</span></div><div><strong>{recipe.nutrition.fats}g</strong><span>fats</span></div></section>
