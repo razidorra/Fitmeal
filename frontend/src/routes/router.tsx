@@ -1,5 +1,5 @@
 import { createRootRoute, createRoute, createRouter, Link, Outlet } from '@tanstack/react-router';
-import { Show, SignInButton, SignUpButton, UserButton } from '@clerk/react';
+import { Show, SignInButton, SignUpButton, useClerk, useUser } from '@clerk/react';
 import { HomePage } from '../features/home/HomePage';
 import { MealPlannerPage } from '../features/meal-plan/MealPlannerPage';
 import { ProgressPage } from '../features/progress/ProgressPage';
@@ -12,6 +12,23 @@ import { ErrorBoundary } from '../shared/components/ErrorBoundary';
 
 const navLinkClass = 'text-ink-soft no-underline text-sm';
 const navLinkActiveClass = 'text-accent! font-bold';
+
+// Only ever mounted inside <Show when="signed-in">, so a real user is always loaded by the time
+// this renders — that's what makes calling useUser()/useClerk() here safe with no extra guards.
+function AccountStatus() {
+  const { user } = useUser();
+  const { signOut } = useClerk();
+  const name = user?.firstName || user?.username || user?.primaryEmailAddress?.emailAddress || 'Account';
+
+  return <div className="flex items-center gap-3">
+    <img src={user?.imageUrl} alt="" className="w-8 h-8 rounded-full object-cover bg-hover shrink-0" />
+    <span className="flex items-center gap-1.5 text-sm text-ink whitespace-nowrap max-[480px]:hidden">
+      <span className="w-2 h-2 rounded-full bg-good shrink-0" aria-hidden="true" title="Online" />
+      {name}
+    </span>
+    <button type="button" onClick={() => signOut({ redirectUrl: '/' })} className="bg-transparent border-0 p-0 text-accent text-[13px] font-semibold underline cursor-pointer hover:bg-transparent hover:text-accent-hover whitespace-nowrap">Log out</button>
+  </div>;
+}
 
 function Layout() {
   // The boundary wraps only the routed page content, not the header/nav/footer — so a crash on
@@ -34,7 +51,7 @@ function Layout() {
           <SignInButton><button>Log in</button></SignInButton>
           <SignUpButton><button className="px-5.25 py-3.5">Sign up</button></SignUpButton>
         </Show>
-        <Show when="signed-in"><UserButton /></Show>
+        <Show when="signed-in"><AccountStatus /></Show>
       </div>}
     </header>
     <main className="max-w-340 mx-auto pt-22.5 max-[720px]:pt-11.25 px-[max(5vw,32px)] max-[720px]:px-5 pb-0">
