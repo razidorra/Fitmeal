@@ -74,7 +74,7 @@ export function HomePage() {
         </div>
       </Reveal>
       <Reveal delay={170} className="h-118.75 max-[720px]:h-97.5 relative max-[720px]:max-w-175 max-[720px]:w-full max-[720px]:ml-auto">
-        <div aria-label="Grilled chicken quinoa bowl and a fresh salad bowl, flat-laid with workout gear" className="h-117.5 max-[720px]:h-97.5 ml-17.5 max-[720px]:ml-7.5 rounded-[9px] bg-[linear-gradient(120deg,rgba(0,0,0,.05),rgba(0,0,0,.18)),url('/images/backG.jpg')] bg-cover bg-right" />
+        <div aria-label="Eat right, reach your goals — grilled chicken quinoa bowl with a FitMeal shaker and meal-plan notebook" className="h-117.5 max-[720px]:h-97.5 ml-17.5 max-[720px]:ml-7.5 rounded-[9px] bg-[linear-gradient(120deg,rgba(0,0,0,.05),rgba(0,0,0,.18)),url('/images/hero.jpg')] bg-cover bg-right" />
         <PhonePreview />
       </Reveal>
     </section>

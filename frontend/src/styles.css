@@ -32,7 +32,7 @@
    Tailwind color utility above resolves through these, so switching themes still needs no JS beyond
    the data-theme attribute swap in shared/theme.ts. */
 :root{
-  --bg-page:#0a0b0b; --bg-surface:#111211; --bg-surface-alt:#1b1c1a; --bg-input:#161716; --bg-badge:#242419; --bg-icon:#28261d; --bg-hover:#2a2a24;
+  --bg-page:#0a0b0b; --bg-page-rgb:10,11,11; --bg-surface:#111211; --bg-surface-alt:#1b1c1a; --bg-input:#161716; --bg-badge:#242419; --bg-icon:#28261d; --bg-hover:#2a2a24;
   --border:#383832; --border-strong:#46453f;
   --text-primary:#f5f1e8; --text-secondary:#c9c3b6; --text-muted:#918e85;
   --accent:#dfcc86; --accent-hover:#f0de9b; --accent-soft-text:#e9dfb8; --on-accent:#0c0d0c;
@@ -40,7 +40,7 @@
   --photo-placeholder-1:#1f2019; --photo-placeholder-2:#302c1e;
 }
 :root[data-theme="light"]{
-  --bg-page:#faf5ea; --bg-surface:#ffffff; --bg-surface-alt:#f4ecd8; --bg-input:#ffffff; --bg-badge:#f2e4c2; --bg-icon:#f0e0b8; --bg-hover:#f0e6d2;
+  --bg-page:#faf5ea; --bg-page-rgb:250,245,234; --bg-surface:#ffffff; --bg-surface-alt:#f4ecd8; --bg-input:#ffffff; --bg-badge:#f2e4c2; --bg-icon:#f0e0b8; --bg-hover:#f0e6d2;
   --border:#e3d7bd; --border-strong:#d3c2a0;
   --text-primary:#2b2416; --text-secondary:#5c5140; --text-muted:#6f6350;
   --accent:#b8860b; --accent-hover:#a3760a; --accent-soft-text:#7a5c14; --on-accent:#ffffff;
@@ -48,7 +48,7 @@
   --photo-placeholder-1:#efe6d4; --photo-placeholder-2:#e6d9bd;
 }
 :root[data-theme="rose"]{
-  --bg-page:#0f0a0d; --bg-surface:#1a1013; --bg-surface-alt:#221419; --bg-input:#1c1216; --bg-badge:#2b1720; --bg-icon:#2b1720; --bg-hover:#33191f;
+  --bg-page:#0f0a0d; --bg-page-rgb:15,10,13; --bg-surface:#1a1013; --bg-surface-alt:#221419; --bg-input:#1c1216; --bg-badge:#2b1720; --bg-icon:#2b1720; --bg-hover:#33191f;
   --border:#3a2028; --border-strong:#4a2831;
   --text-primary:#f5e9ec; --text-secondary:#cbb0b8; --text-muted:#8f7278;
   --accent:#e893ac; --accent-hover:#f0a8bd; --accent-soft-text:#f0c3d0; --on-accent:#2b0d16;
@@ -56,7 +56,7 @@
   --photo-placeholder-1:#1f1418; --photo-placeholder-2:#2c1820;
 }
 :root[data-theme="ocean"]{
-  --bg-page:#070b10; --bg-surface:#101720; --bg-surface-alt:#161e28; --bg-input:#131b24; --bg-badge:#1a2634; --bg-icon:#1a2634; --bg-hover:#1f2c3a;
+  --bg-page:#070b10; --bg-page-rgb:7,11,16; --bg-surface:#101720; --bg-surface-alt:#161e28; --bg-input:#131b24; --bg-badge:#1a2634; --bg-icon:#1a2634; --bg-hover:#1f2c3a;
   --border:#223040; --border-strong:#2c3d50;
   --text-primary:#e9f1f8; --text-secondary:#aebdcc; --text-muted:#728294;
   --accent:#6fb3e0; --accent-hover:#8ac2e8; --accent-soft-text:#b9dcf0; --on-accent:#08202f;
@@ -64,7 +64,7 @@
   --photo-placeholder-1:#121a22; --photo-placeholder-2:#1a2534;
 }
 :root[data-theme="forest"]{
-  --bg-page:#090c09; --bg-surface:#121712; --bg-surface-alt:#182018; --bg-input:#141a14; --bg-badge:#1c2a1c; --bg-icon:#1c2a1c; --bg-hover:#203020;
+  --bg-page:#090c09; --bg-page-rgb:9,12,9; --bg-surface:#121712; --bg-surface-alt:#182018; --bg-input:#141a14; --bg-badge:#1c2a1c; --bg-icon:#1c2a1c; --bg-hover:#203020;
   --border:#253325; --border-strong:#30422f;
   --text-primary:#ecf3ec; --text-secondary:#b6c7b4; --text-muted:#7c8f79;
   --accent:#7fc879; --accent-hover:#93d38d; --accent-soft-text:#bfe3ba; --on-accent:#0c1f0c;
@@ -72,7 +72,7 @@
   --photo-placeholder-1:#131a13; --photo-placeholder-2:#1c281c;
 }
 :root[data-theme="slate"]{
-  --bg-page:#0a0b0c; --bg-surface:#131415; --bg-surface-alt:#1a1c1e; --bg-input:#151718; --bg-badge:#202325; --bg-icon:#202325; --bg-hover:#26292c;
+  --bg-page:#0a0b0c; --bg-page-rgb:10,11,12; --bg-surface:#131415; --bg-surface-alt:#1a1c1e; --bg-input:#151718; --bg-badge:#202325; --bg-icon:#202325; --bg-hover:#26292c;
   --border:#2c2f32; --border-strong:#383c40;
   --text-primary:#eef0f1; --text-secondary:#b8bec2; --text-muted:#7c8388;
   --accent:#9db1bd; --accent-hover:#b0c2cc; --accent-soft-text:#cddce2; --on-accent:#12181b;
@@ -86,7 +86,17 @@
   * { box-sizing: border-box; }
   html { scroll-behavior: smooth; }
   :root { @apply font-sans text-ink bg-page; }
-  body { @apply m-0 bg-page; }
+  /* Whole-site background photo, tinted with the active theme's own page color so it reads as a
+     subtle texture rather than competing with text — every card/panel already has its own opaque
+     background, so this only ever shows through in the gaps between them. Fixed attachment keeps
+     it sized to the viewport instead of stretching across the (very long) page content. */
+  body {
+    @apply m-0 bg-page;
+    background-image: linear-gradient(rgba(var(--bg-page-rgb), .9), rgba(var(--bg-page-rgb), .9)), url('/images/backG.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+  }
   h1 { @apply font-display font-semibold text-[clamp(54px,6.4vw,92px)] leading-[1.04] tracking-[-0.055em] my-5.5; }
   h1 em { @apply text-accent italic; }
   h2 { @apply font-display font-semibold text-[31px] mt-2 mb-5.5; }
