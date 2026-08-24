@@ -4,7 +4,7 @@ FitMeal is a TypeScript full-stack meal-planning application. It provides a nutr
 
 ## Technology
 
-- Frontend: React, Vite, TypeScript, TanStack Router
+- Frontend: React, Vite, TypeScript, TanStack Router, Tailwind CSS
 - Backend: Node.js, Express, TypeScript
 - Database: MongoDB with Mongoose
 - Tooling: npm workspaces
@@ -78,7 +78,9 @@ Without a key, the assistant returns a clear "not set up yet" message instead of
 
 ## Appearance
 
-The whole site supports a "Midnight Gold" (dark, default) and "Warm Light" theme, toggled from the Account page (`/account`, signed-in only) and saved per device in `localStorage`. Colors are defined as CSS custom properties in `frontend/src/styles.css`.
+The whole site supports six themes — "Midnight Gold" (dark, default), "Warm Light", "Rose Pink", "Ocean Blue", "Forest Green", and "Slate Gray" — toggled from the Account page (`/account`, signed-in only) and saved per device in `localStorage`.
+
+Styling is Tailwind CSS (v4) utility classes throughout. The six themes stay CSS custom properties (`--bg-page`, `--text-primary`, `--accent`, etc.) in `frontend/src/styles.css`, swapped via a `data-theme` attribute on `<html>` — Tailwind's color utilities (`bg-page`, `text-ink`, `text-accent`, ...) are mapped onto those same variables via `@theme inline`, so every utility class already follows theme changes with no extra work. A small `@layer base` block covers genuinely global element defaults (`button`, `h1`–`h3`, `input`/`select`); everything else is per-component utility classes in JSX.
 
 ## Clerk authentication
 

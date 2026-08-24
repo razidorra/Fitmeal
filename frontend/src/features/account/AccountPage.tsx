@@ -8,17 +8,20 @@ import { getStoredTheme, setTheme, type Theme } from '../../shared/theme';
 import type { Checkin, MealPlan, Profile } from '../../shared/types';
 
 export function AccountPage() {
-  if (!isClerkConfigured) return <section className="empty"><h1>Sign-in is not configured.</h1><p>Set <code>VITE_CLERK_PUBLISHABLE_KEY</code> to enable accounts.</p></section>;
+  if (!isClerkConfigured) return <section className="text-center py-22.5"><h1 className="text-[54px]">Sign-in is not configured.</h1><p>Set <code>VITE_CLERK_PUBLISHABLE_KEY</code> to enable accounts.</p></section>;
   return <AccountContent />;
 }
 
-const themeOptions: Array<{ value: Theme; label: string }> = [
-  { value: 'dark', label: 'Midnight Gold' },
-  { value: 'light', label: 'Warm Light' },
-  { value: 'rose', label: 'Rose Pink' },
-  { value: 'ocean', label: 'Ocean Blue' },
-  { value: 'forest', label: 'Forest Green' },
-  { value: 'slate', label: 'Slate Gray' },
+// swatchBg/swatchAccent are each theme's actual --bg-page/--accent literal, not a live var()
+// reference — a swatch needs to preview a theme that might not be the active one, so it can't
+// follow the current theme's variables the way the rest of the page does.
+const themeOptions: Array<{ value: Theme; label: string; swatchBg: string; swatchAccent: string }> = [
+  { value: 'dark', label: 'Midnight Gold', swatchBg: '#0a0b0b', swatchAccent: '#dfcc86' },
+  { value: 'light', label: 'Warm Light', swatchBg: '#ffffff', swatchAccent: '#b8860b' },
+  { value: 'rose', label: 'Rose Pink', swatchBg: '#1a1013', swatchAccent: '#e893ac' },
+  { value: 'ocean', label: 'Ocean Blue', swatchBg: '#101720', swatchAccent: '#6fb3e0' },
+  { value: 'forest', label: 'Forest Green', swatchBg: '#121712', swatchAccent: '#7fc879' },
+  { value: 'slate', label: 'Slate Gray', swatchBg: '#131415', swatchAccent: '#9db1bd' },
 ];
 
 function recentCheckinCount(checkins: Checkin[]) {
@@ -76,76 +79,82 @@ function AccountContent() {
     setThemeState(next);
   }
 
-  if (!authLoaded || isLoading) return <section className="empty"><p>Loading your account…</p></section>;
+  if (!authLoaded || isLoading) return <section className="text-center py-22.5"><p>Loading your account…</p></section>;
 
-  if (!isSignedIn) return <section className="empty">
-    <h1>Sign in to see your account.</h1>
+  if (!isSignedIn) return <section className="text-center py-22.5">
+    <h1 className="text-[54px]">Sign in to see your account.</h1>
     <p>Create a free account to manage your profile, plan, and progress in one place.</p>
-    <div className="hero-actions">
+    <div className="flex items-center gap-6 mt-6 mb-8.75 justify-center">
       <SignInButton><button className="primary">Log in</button></SignInButton>
       <SignUpButton><button className="primary">Sign up</button></SignUpButton>
     </div>
   </section>;
 
   const isPlanToday = plan?.date === getLocalDateString();
+  const panelLinkClass = 'text-accent font-bold text-[13px] no-underline hover:underline';
+  const summaryStrongClass = 'block font-display font-semibold text-[28px] text-accent';
+  const summarySpanClass = 'text-ink-soft text-[13px]';
 
   return <>
-    <section className="page-intro">
-      <span className="eyebrow">Your account</span>
+    <section className="mb-9.5">
+      <span className="uppercase tracking-[.04em] font-sans font-semibold text-[13px] text-accent bg-badge px-3 py-1.75 inline-block">Your account</span>
       <h1>Everything in one place.</h1>
     </section>
-    <div className="account-card">
-      <img className="account-avatar" src={user?.imageUrl} alt="" />
+    <div className="flex items-center gap-5 py-6.5 px-7 border border-line bg-surface-alt mb-5.5 max-[720px]:flex-col max-[720px]:items-start max-[720px]:text-left">
+      <img className="w-14 h-14 rounded-full object-cover bg-hover" src={user?.imageUrl} alt="" />
       <div>
-        <span className="account-label">Your FitMeal account</span>
-        <h2>{user?.fullName || user?.username || 'FitMeal member'}</h2>
-        <p>{user?.primaryEmailAddress?.emailAddress}</p>
+        <span className="uppercase tracking-wider font-sans font-semibold text-[11px] text-accent">Your FitMeal account</span>
+        <h2 className="font-display font-semibold text-2xl mt-1.5 mb-1">{user?.fullName || user?.username || 'FitMeal member'}</h2>
+        <p className="m-0 text-ink-soft text-sm">{user?.primaryEmailAddress?.emailAddress}</p>
       </div>
     </div>
 
-    <div className="account-grid">
-      <div className="account-panel">
-        <div className="account-panel-header">
-          <span className="account-label">Today</span>
-          <Link to="/planner" className="account-panel-link">Manage plan →</Link>
+    <div className="grid grid-cols-2 max-[720px]:grid-cols-1 gap-5 mb-5">
+      <div className="py-6.5 px-7 border border-line bg-surface">
+        <div className="flex justify-between items-center">
+          <span className="uppercase tracking-wider font-sans font-semibold text-[11px] text-accent">Today</span>
+          <Link to="/planner" className={panelLinkClass}>Manage plan →</Link>
         </div>
-        <h2>My FitMeal plan</h2>
+        <h2 className="font-display font-semibold text-[22px] mt-1.5 mb-4">My FitMeal plan</h2>
         {!profile
-          ? <div className="account-callout">
-            <p>Set your goal, activity and body details to calculate a personal daily target.</p>
-            <Link to="/planner" className="account-panel-link">Create my plan →</Link>
+          ? <div className="py-4.5 px-5 border border-accent bg-surface-alt">
+            <p className="mb-3 text-ink">Set your goal, activity and body details to calculate a personal daily target.</p>
+            <Link to="/planner" className={panelLinkClass}>Create my plan →</Link>
           </div>
           : isPlanToday
-            ? <div className="account-summary"><strong>{plan!.targets.calories} kcal</strong><span>daily target · {plan!.targets.protein}g protein</span></div>
-            : <div className="account-callout">
-              <p>No plan generated for today yet.</p>
-              <Link to="/planner" className="account-panel-link">Generate today's plan →</Link>
+            ? <div><strong className={summaryStrongClass}>{plan!.targets.calories} kcal</strong><span className={summarySpanClass}>daily target · {plan!.targets.protein}g protein</span></div>
+            : <div className="py-4.5 px-5 border border-accent bg-surface-alt">
+              <p className="mb-3 text-ink">No plan generated for today yet.</p>
+              <Link to="/planner" className={panelLinkClass}>Generate today's plan →</Link>
             </div>}
       </div>
 
-      <div className="account-panel">
-        <div className="account-panel-header">
-          <span className="account-label">Last 7 days</span>
-          <Link to="/progress" className="account-panel-link">View details →</Link>
+      <div className="py-6.5 px-7 border border-line bg-surface">
+        <div className="flex justify-between items-center">
+          <span className="uppercase tracking-wider font-sans font-semibold text-[11px] text-accent">Last 7 days</span>
+          <Link to="/progress" className={panelLinkClass}>View details →</Link>
         </div>
-        <h2>My progress</h2>
+        <h2 className="font-display font-semibold text-[22px] mt-1.5 mb-4">My progress</h2>
         {!profile
-          ? <p className="account-muted">Set up your profile to start tracking.</p>
+          ? <p className="text-ink-muted m-0">Set up your profile to start tracking.</p>
           : progressError
             ? <p role="alert">{progressError}</p>
             : !checkins || recentCheckinCount(checkins) === 0
-              ? <p className="account-muted">No check-ins in the last 7 days.</p>
-              : <div className="account-summary"><strong>{recentCheckinCount(checkins)}</strong><span>check-in{recentCheckinCount(checkins) === 1 ? '' : 's'} logged</span></div>}
+              ? <p className="text-ink-muted m-0">No check-ins in the last 7 days.</p>
+              : <div><strong className={summaryStrongClass}>{recentCheckinCount(checkins)}</strong><span className={summarySpanClass}>check-in{recentCheckinCount(checkins) === 1 ? '' : 's'} logged</span></div>}
       </div>
     </div>
 
-    <div className="account-panel account-theme">
-      <span className="account-label">Appearance</span>
-      <h2>Website theme</h2>
-      <p>Your choice is saved on this device and applied across FitMeal.</p>
-      <div className="theme-options">
-        {themeOptions.map((option) => <button key={option.value} type="button" className={`theme-option ${theme === option.value ? 'is-selected' : ''}`} onClick={() => handleThemeChange(option.value)}>
-          <span className={`theme-swatch theme-swatch-${option.value}`} aria-hidden="true" />
+    <div className="py-6.5 px-7 border border-line bg-surface">
+      <span className="uppercase tracking-wider font-sans font-semibold text-[11px] text-accent">Appearance</span>
+      <h2 className="font-display font-semibold text-[22px] mt-1.5 mb-4">Website theme</h2>
+      <p className="text-ink-soft mb-4.5">Your choice is saved on this device and applied across FitMeal.</p>
+      <div className="grid grid-cols-3 max-[720px]:grid-cols-1 gap-3.5">
+        {themeOptions.map((option) => <button key={option.value} type="button" className={`flex items-center gap-3.5 py-4 px-5 border bg-surface-alt text-ink font-semibold ${theme === option.value ? 'border-accent' : 'border-line-strong'}`} onClick={() => handleThemeChange(option.value)}>
+          <span aria-hidden="true" className="relative w-8.5 h-5 shrink-0">
+            <span aria-hidden="true" className="absolute top-0 left-0 w-5 h-5 rounded-full border-2 border-line-strong" style={{ background: option.swatchBg }} />
+            <span aria-hidden="true" className="absolute top-0 left-3.5 w-5 h-5 rounded-full border-2 border-line-strong" style={{ background: option.swatchAccent }} />
+          </span>
           {option.label}
         </button>)}
       </div>

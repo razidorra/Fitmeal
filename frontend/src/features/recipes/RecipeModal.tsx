@@ -18,30 +18,34 @@ export function RecipeModal({ recipe, onClose }: { recipe: Recipe; onClose: () =
     };
   }, [onClose]);
 
-  return <div className="recipe-modal-backdrop" onClick={onClose}>
-    <div className="recipe-modal" role="dialog" aria-modal="true" aria-label={recipe.title} onClick={(event) => event.stopPropagation()}>
-      <div className="recipe-modal-photo">
-        <img src={recipe.image} alt={recipe.title} onError={(event) => { event.currentTarget.style.display = 'none'; }} />
+  const stats = [[recipe.nutrition.calories, 'kcal', 'Calories'], [recipe.nutrition.protein, 'g', 'Protein'], [recipe.nutrition.carbs, 'g', 'Carbs'], [recipe.nutrition.fats, 'g', 'Fat']] as const;
+
+  return <div className="fixed inset-0 bg-[rgba(6,6,5,.82)] flex items-center justify-center p-8 z-100 animate-[recipe-modal-fade_180ms_ease]" onClick={onClose}>
+    <div className="bg-surface border border-line max-w-260 w-full max-h-[88vh] grid grid-cols-2 max-[800px]:grid-cols-1 max-[800px]:max-h-[92vh] max-[800px]:overflow-y-auto overflow-hidden" role="dialog" aria-modal="true" aria-label={recipe.title} onClick={(event) => event.stopPropagation()}>
+      <div className="bg-[linear-gradient(135deg,var(--color-ph1),var(--color-ph2))] min-h-full max-[800px]:aspect-video">
+        <img src={recipe.image} alt={recipe.title} onError={(event) => { event.currentTarget.style.display = 'none'; }} className="w-full h-full object-cover block" />
       </div>
-      <div className="recipe-modal-body">
-        <button type="button" className="recipe-modal-close" onClick={onClose} aria-label="Close">×</button>
-        <div className="recipe-modal-tags">{recipe.tags.map((tag) => <span key={tag}>{tag}</span>)}</div>
-        <h2>{recipe.title}</h2>
-        <p className="recipe-modal-description">{recipe.description}</p>
-        <div className="recipe-modal-stats">
-          <div><span>Calories</span><strong>{recipe.nutrition.calories}<small>kcal</small></strong></div>
-          <div><span>Protein</span><strong>{recipe.nutrition.protein}<small>g</small></strong></div>
-          <div><span>Carbs</span><strong>{recipe.nutrition.carbs}<small>g</small></strong></div>
-          <div><span>Fat</span><strong>{recipe.nutrition.fats}<small>g</small></strong></div>
+      <div className="relative p-10 overflow-y-auto">
+        <button type="button" onClick={onClose} aria-label="Close" className="absolute top-5 right-5 w-9.5 h-9.5 rounded-full bg-surface-alt border border-line-strong text-ink text-xl leading-none grid place-items-center p-0 hover:bg-hover">×</button>
+        <div className="mb-2.5 text-accent text-xs font-bold uppercase tracking-wider">
+          {recipe.tags.map((tag, index) => <span key={tag}>{tag}{index < recipe.tags.length - 1 ? ' · ' : ''}</span>)}
         </div>
-        <div className="recipe-modal-content">
+        <h2 className="font-display font-semibold text-[32px] mt-0 mb-3.5">{recipe.title}</h2>
+        <p className="text-ink-soft leading-[1.55] mb-6.5">{recipe.description}</p>
+        <div className="grid grid-cols-4 max-[800px]:grid-cols-2 gap-2.5 mb-7.5">
+          {stats.map(([value, unit, label]) => <div key={label} className="border border-line-strong bg-surface-alt py-3.5 px-2.5 text-center">
+            <span className="block text-[11px] text-ink-muted mb-1.5">{label}</span>
+            <strong className="font-display font-semibold text-[22px] text-accent">{value}<small className="text-[11px] text-ink-muted font-normal ml-0.5">{unit}</small></strong>
+          </div>)}
+        </div>
+        <div className="grid grid-cols-2 max-[800px]:grid-cols-1 gap-8.5">
           <div>
-            <h3>Ingredients</h3>
-            <ul>{recipe.ingredients.map((item) => <li key={item}>{item}</li>)}</ul>
+            <h3 className="text-lg mt-0 mb-3">Ingredients</h3>
+            <ul className="m-0 pl-5 text-ink-soft leading-[1.65]">{recipe.ingredients.map((item) => <li key={item} className="mb-1.75">{item}</li>)}</ul>
           </div>
           <div>
-            <h3>Preparation</h3>
-            <ol>{recipe.steps.map((step) => <li key={step}>{step}</li>)}</ol>
+            <h3 className="text-lg mt-0 mb-3">Preparation</h3>
+            <ol className="m-0 pl-5 text-ink-soft leading-[1.65]">{recipe.steps.map((step) => <li key={step} className="mb-1.75">{step}</li>)}</ol>
           </div>
         </div>
       </div>

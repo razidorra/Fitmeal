@@ -1,5 +1,16 @@
 # FitMeal change protocol
 
+## 2026-08-24 — Migrate all frontend styling to Tailwind CSS
+
+### Implemented
+
+- Converted every component's markup from hand-written CSS classes to Tailwind utility classes — all 17 `.tsx` files across `home`, `recipes`, `meal-plan`, `progress`, `account`, and `shared/components`, plus the router's `Layout` — and deleted the CSS files that backed them (`recipes.css`, `homepage.css`, `nutrition.css`, `faq.css`) once nothing referenced their classes any more. `styles.css` is now just: the Google Fonts import, the Tailwind import, font/color theme tokens, the six `[data-theme]` variable blocks (untouched), one `@keyframes` (for the recipe/sign-in modal fade, which utilities can't express), and a small `@layer base` for genuinely global element defaults (`button`, `h1`–`h3`, `input`/`select`) — everything else is inline utilities.
+- Bridged Tailwind to the existing 6-theme CSS-variable system with `@theme inline` in `styles.css`: `--color-page: var(--bg-page)` (etc. for every token) generates real utilities (`bg-page`, `text-ink`, `text-accent`, `border-line`, ...) that reference the underlying variable at runtime rather than copying its value at build time, so the `[data-theme]` attribute swap in `shared/theme.ts` still works with zero JS changes — verified by checking computed styles resolve to each theme's actual color, not just that the page renders.
+- Preserved pixel-for-pixel layout using Tailwind's fractional spacing scale (e.g. `gap-7.5` for 30px) for anything that divides cleanly by 4px, and arbitrary-value brackets (`text-[13px]`, `grid-cols-[1.6fr_repeat(4,1fr)]`) for everything else — verified against the IDE's own canonical-class suggestions rather than guessing.
+- Kept the two deliberately theme-independent dark panels (the homepage phone mockup, the "nutrition basics" and "mobile app" sections) exactly as before, including the pre-existing inconsistency where their background is hardcoded but some of their text still follows the active theme.
+- Verified every page (`/`, `/recipes`, `/planner`, `/progress`, `/account`) against all 6 themes via headless-browser sweeps (zero console/page errors), plus targeted checks: computed nav active-state colors per theme, recipe-card hover/focus lift, the sign-in-gate modal, and — since this sandbox has no real Clerk sign-in — a temporary mock route rendering `MealPlanCard`/`PlanHistory` with fake data to check the swap/confirm/expand states, deleted once confirmed.
+- Fixed a real bug the conversion surfaced: `tsc --noEmit` had been silently passing while `tsc -b` (what `npm run build` actually runs) correctly rejected `(condition ? 'a' : 'b') as const` in `PlanHistory.tsx` — a `const` assertion can only apply to a literal, not a ternary's result. Also caught `ErrorBoundary.tsx`, easy to miss since it's not a "page" — its fallback UI referenced CSS classes already deleted from `styles.css` by the time the sweep reached it.
+
 ## 2026-08-24 — Backend tests, error boundary, and deployment config
 
 ### Implemented

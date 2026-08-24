@@ -10,7 +10,7 @@ import { AssistantChat } from './AssistantChat';
 import { PlanHistory } from './PlanHistory';
 
 export function MealPlannerPage() {
-  if (!isClerkConfigured) return <section className="empty"><h1>Sign-in is not configured.</h1><p>Set <code>VITE_CLERK_PUBLISHABLE_KEY</code> to enable the meal planner.</p></section>;
+  if (!isClerkConfigured) return <section className="text-center py-22.5"><h1 className="text-[54px]">Sign-in is not configured.</h1><p>Set <code>VITE_CLERK_PUBLISHABLE_KEY</code> to enable the meal planner.</p></section>;
   return <MealPlannerContent />;
 }
 
@@ -120,18 +120,18 @@ function MealPlannerContent() {
     }
   }
 
-  if (!isLoaded || isLoading) return <section className="empty"><p>Loading your meal planner…</p></section>;
+  if (!isLoaded || isLoading) return <section className="text-center py-22.5"><p>Loading your meal planner…</p></section>;
 
   if (!isSignedIn) return <>
-    <section className="page-intro">
-      <span className="eyebrow">Set up your profile</span>
+    <section className="mb-9.5">
+      <span className="uppercase tracking-[.04em] font-sans font-semibold text-[13px] text-accent bg-badge px-3 py-1.75 inline-block">Set up your profile</span>
       <h1>Let's build your plan.</h1>
-      <p>Try the form below to see what FitMeal needs — sign in to actually save it and get your personalised meal plan.</p>
+      <p className="text-lg leading-[1.45] text-ink-soft max-w-142.5">Try the form below to see what FitMeal needs — sign in to actually save it and get your personalised meal plan.</p>
     </section>
     <ProfileForm onSave={() => setShowGuestPrompt(true)} isSaving={false} />
-    {showGuestPrompt && <div className="guest-alert">
-      <p role="alert">Please sign in to see your personalised meal plan.</p>
-      <div className="hero-actions">
+    {showGuestPrompt && <div className="mt-6 p-5.5 border-l-[3px] border-accent bg-surface-alt">
+      <p role="alert" className="mb-4.5 text-accent font-semibold text-[15px]">Please sign in to see your personalised meal plan.</p>
+      <div className="flex items-center gap-6 m-0">
         <SignInButton><button className="primary">Log in</button></SignInButton>
         <SignUpButton><button className="primary">Sign up</button></SignUpButton>
       </div>
@@ -139,39 +139,39 @@ function MealPlannerContent() {
   </>;
 
   if (!profile) return <>
-    <section className="page-intro">
-      <span className="eyebrow">Set up your profile</span>
+    <section className="mb-9.5">
+      <span className="uppercase tracking-[.04em] font-sans font-semibold text-[13px] text-accent bg-badge px-3 py-1.75 inline-block">Set up your profile</span>
       <h1>Let's build your plan.</h1>
-      <p>Add your details once — FitMeal uses them to calculate your daily targets and generate a meal plan.</p>
+      <p className="text-lg leading-[1.45] text-ink-soft max-w-142.5">Add your details once — FitMeal uses them to calculate your daily targets and generate a meal plan.</p>
     </section>
     <ProfileForm onSave={handleSaveProfile} isSaving={isSavingProfile} />
     {errorMessage && <p role="alert">{errorMessage}</p>}
   </>;
 
   if (isEditingProfile) return <>
-    <section className="page-intro">
-      <span className="eyebrow">Edit your profile</span>
+    <section className="mb-9.5">
+      <span className="uppercase tracking-[.04em] font-sans font-semibold text-[13px] text-accent bg-badge px-3 py-1.75 inline-block">Edit your profile</span>
       <h1>Update your details.</h1>
-      <p>Changing your stats won't touch today's plan — hit "Refresh plan" afterwards if you want new targets.</p>
+      <p className="text-lg leading-[1.45] text-ink-soft max-w-142.5">Changing your stats won't touch today's plan — hit "Refresh plan" afterwards if you want new targets.</p>
     </section>
     <ProfileForm onSave={handleUpdateProfile} isSaving={isSavingProfile} initialProfile={profile} submitLabel="Update profile" savingLabel="Updating…" />
-    <button type="button" className="meal-swap-toggle profile-form-cancel" onClick={() => setIsEditingProfile(false)}>Cancel</button>
+    <button type="button" className="bg-transparent border-0 p-0 mt-4 text-accent text-[13px] font-semibold underline cursor-pointer inline-block hover:bg-transparent hover:text-accent-hover" onClick={() => setIsEditingProfile(false)}>Cancel</button>
     {errorMessage && <p role="alert">{errorMessage}</p>}
   </>;
 
   return <>
-    <section className="page-intro">
-      <span className="eyebrow">Today's meal plan — {formatDisplayDate(plan?.date ?? getLocalDateString())}</span>
+    <section className="mb-9.5">
+      <span className="uppercase tracking-[.04em] font-sans font-semibold text-[13px] text-accent bg-badge px-3 py-1.75 inline-block">Today's meal plan — {formatDisplayDate(plan?.date ?? getLocalDateString())}</span>
       <h1>Your food, mapped out.</h1>
-      <p>A flexible starting point for your {profile.goal} goal.</p>
-      <div className="hero-actions">
+      <p className="text-lg leading-[1.45] text-ink-soft max-w-142.5">A flexible starting point for your {profile.goal} goal.</p>
+      <div className="flex items-center gap-6 mt-6 mb-8.75 max-[720px]:flex-wrap">
         <button className="primary" onClick={handleGeneratePlan} disabled={isGenerating}>{isGenerating ? 'Creating…' : 'Refresh plan'}</button>
-        <button type="button" className="meal-swap-toggle" onClick={() => setIsEditingProfile(true)}>Edit profile</button>
+        <button type="button" className="bg-transparent border-0 p-0 mt-2 text-accent text-[13px] font-semibold underline cursor-pointer inline-block hover:bg-transparent hover:text-accent-hover" onClick={() => setIsEditingProfile(true)}>Edit profile</button>
       </div>
       {profileUpdatedNotice && <p>Profile updated. Refresh your plan above to recalculate today's targets.</p>}
       {errorMessage && <p role="alert">{errorMessage}</p>}
     </section>
-    {plan && <div className="split">
+    {plan && <div className="grid grid-cols-[1.3fr_.7fr] max-[720px]:grid-cols-1 gap-15 max-[720px]:gap-8.75 mt-27.5 py-11.25">
       <div><MealPlanCard plan={plan} onPlanChange={setPlan} /></div>
       <AssistantChat />
     </div>}

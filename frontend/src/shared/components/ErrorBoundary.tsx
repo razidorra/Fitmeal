@@ -36,12 +36,12 @@ export class ErrorBoundary extends Component<Props, State> {
     if (!this.state.error) return this.props.children;
 
     return (
-      <section className="empty">
-        <h1>Something went wrong.</h1>
+      <section className="text-center py-22.5">
+        <h1 className="text-[54px]">Something went wrong.</h1>
         <p>This page hit an unexpected error. You can try again, or head back to the homepage.</p>
-        <div className="hero-actions">
+        <div className="flex items-center gap-6 mt-6 mb-8.75 justify-center">
           <button type="button" className="primary" onClick={this.handleRetry}>Try again</button>
-          <a className="how-it-works" href={this.props.homeHref ?? '/'}>Go home</a>
+          <a className="flex items-center gap-2.5 text-ink no-underline font-semibold" href={this.props.homeHref ?? '/'}>Go home</a>
         </div>
       </section>
     );

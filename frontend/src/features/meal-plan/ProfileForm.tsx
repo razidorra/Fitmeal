@@ -27,28 +27,30 @@ export function ProfileForm({ onSave, isSaving, initialProfile, submitLabel = 'S
     onSave({ name, age, sex, heightCm, weightKg, activity, goal });
   }
 
-  return <form className="profile-form" onSubmit={handleSubmit}>
-    <label>Name<input value={name} onChange={(event) => setName(event.target.value)} required /></label>
-    <label>Age<input type="number" min={16} max={100} value={age} onChange={(event) => setAge(Number(event.target.value))} required /></label>
-    <label>Sex
+  const labelClass = 'text-[13px] text-ink-soft grid gap-1.5';
+
+  return <form className="grid grid-cols-2 max-[720px]:grid-cols-1 gap-3.75" onSubmit={handleSubmit}>
+    <label className={labelClass}>Name<input value={name} onChange={(event) => setName(event.target.value)} required /></label>
+    <label className={labelClass}>Age<input type="number" min={16} max={100} value={age} onChange={(event) => setAge(Number(event.target.value))} required /></label>
+    <label className={labelClass}>Sex
       <select value={sex} onChange={(event) => setSex(event.target.value as Profile['sex'])}>
         <option value="female">Female</option>
         <option value="male">Male</option>
         <option value="other">Other</option>
       </select>
     </label>
-    <label>Height (cm)<input type="number" min={100} max={250} value={heightCm} onChange={(event) => setHeightCm(Number(event.target.value))} required /></label>
-    <label>Weight (kg)<input type="number" min={30} max={350} value={weightKg} onChange={(event) => setWeightKg(Number(event.target.value))} required /></label>
-    <label>Activity level
+    <label className={labelClass}>Height (cm)<input type="number" min={100} max={250} value={heightCm} onChange={(event) => setHeightCm(Number(event.target.value))} required /></label>
+    <label className={labelClass}>Weight (kg)<input type="number" min={30} max={350} value={weightKg} onChange={(event) => setWeightKg(Number(event.target.value))} required /></label>
+    <label className={labelClass}>Activity level
       <select value={activity} onChange={(event) => setActivity(event.target.value as Profile['activity'])}>
         {activityLevels.map((level) => <option key={level} value={level}>{level}</option>)}
       </select>
     </label>
-    <label>Goal
+    <label className={labelClass}>Goal
       <select value={goal} onChange={(event) => setGoal(event.target.value as Goal)}>
         {goals.map((option) => <option key={option} value={option}>{option}</option>)}
       </select>
     </label>
-    <button type="submit" disabled={isSaving}>{isSaving ? savingLabel : submitLabel}</button>
+    <button type="submit" className="self-end" disabled={isSaving}>{isSaving ? savingLabel : submitLabel}</button>
   </form>;
 }
