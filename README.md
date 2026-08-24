@@ -33,6 +33,21 @@ npm run build -w frontend
 npm run build -w backend
 ```
 
+## Tests
+
+```bash
+npm run test -w backend
+```
+
+Runs the backend suite (Vitest + Supertest + an in-memory MongoDB via `mongodb-memory-server` —
+no real database or Clerk account needed): pure unit tests for the calorie/macro formula and meal
+plan builder, and route-level tests for `/api/profiles` covering the per-user ownership scoping
+(`findOwnedProfile`) — that one signed-in user can never read or edit another user's profile.
+
+The frontend has an `ErrorBoundary` (`frontend/src/shared/components/ErrorBoundary.tsx`) around
+each routed page, so a crash in one page shows a "Something went wrong — try again" fallback
+instead of a blank screen, while the header/nav/footer stay usable.
+
 ## Configuration
 
 ```env
@@ -103,3 +118,4 @@ Restart `npm run dev` after changing environment variables. When both Clerk keys
 - [Build plan](docs/SPEC.md)
 - [Change protocol](docs/AUDIT.md)
 - [Development guide](AGENTS.md)
+- [Deployment guide](docs/DEPLOYMENT.md)

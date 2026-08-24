@@ -12,6 +12,15 @@ export function AccountPage() {
   return <AccountContent />;
 }
 
+const themeOptions: Array<{ value: Theme; label: string }> = [
+  { value: 'dark', label: 'Midnight Gold' },
+  { value: 'light', label: 'Warm Light' },
+  { value: 'rose', label: 'Rose Pink' },
+  { value: 'ocean', label: 'Ocean Blue' },
+  { value: 'forest', label: 'Forest Green' },
+  { value: 'slate', label: 'Slate Gray' },
+];
+
 function recentCheckinCount(checkins: Checkin[]) {
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
@@ -135,14 +144,10 @@ function AccountContent() {
       <h2>Website theme</h2>
       <p>Your choice is saved on this device and applied across FitMeal.</p>
       <div className="theme-options">
-        <button type="button" className={`theme-option ${theme === 'dark' ? 'is-selected' : ''}`} onClick={() => handleThemeChange('dark')}>
-          <span className="theme-swatch theme-swatch-dark" aria-hidden="true" />
-          Midnight Gold
-        </button>
-        <button type="button" className={`theme-option ${theme === 'light' ? 'is-selected' : ''}`} onClick={() => handleThemeChange('light')}>
-          <span className="theme-swatch theme-swatch-light" aria-hidden="true" />
-          Warm Light
-        </button>
+        {themeOptions.map((option) => <button key={option.value} type="button" className={`theme-option ${theme === option.value ? 'is-selected' : ''}`} onClick={() => handleThemeChange(option.value)}>
+          <span className={`theme-swatch theme-swatch-${option.value}`} aria-hidden="true" />
+          {option.label}
+        </button>)}
       </div>
     </div>
   </>;

@@ -1,18 +1,40 @@
 import { useState } from 'react';
+import { useAuth } from '@clerk/react';
 import type { Goal } from '../../shared/types';
 import { categoryLabels, goalLabels, recipes, type Recipe, type RecipeCategory } from './recipes';
 import { BoltIcon, ClockIcon, FlameIcon } from './icons';
 import { RecipeModal } from './RecipeModal';
+import { SignInPromptModal } from './SignInPromptModal';
+import { isClerkConfigured } from '../../shared/clerk';
 import './recipes.css';
 
 const goalFilters: Array<Goal | 'all'> = ['all', 'lose', 'maintain', 'gain'];
 const categoryFilters: Array<RecipeCategory | 'all'> = ['all', 'meal', 'fruit', 'snack', 'dessert', 'smoothie'];
 
+// `useAuth()` only works inside <ClerkProvider>, which main.tsx only renders when Clerk is
+// configured. Without Clerk there's no way to gate anything, so recipes just stay fully open —
+// same wrapper pattern used by MealPlannerPage/ProgressPage/AccountPage.
 export function RecipesPage() {
+  if (!isClerkConfigured) return <RecipesGrid isSignedIn />;
+  return <RecipesWithAuth />;
+}
+
+function RecipesWithAuth() {
+  const { isSignedIn } = useAuth();
+  return <RecipesGrid isSignedIn={Boolean(isSignedIn)} />;
+}
+
+function RecipesGrid({ isSignedIn }: { isSignedIn: boolean }) {
   const [selectedGoal, setSelectedGoal] = useState<Goal | 'all'>('all');
   const [selectedCategory, setSelectedCategory] = useState<RecipeCategory | 'all'>('all');
   const [openRecipe, setOpenRecipe] = useState<Recipe | null>(null);
+  const [showSignInPrompt, setShowSignInPrompt] = useState(false);
   const visibleRecipes = recipes.filter((recipe) => (selectedGoal === 'all' || recipe.goal === selectedGoal) && (selectedCategory === 'all' || recipe.category === selectedCategory));
+
+  function handleOpenRecipe(recipe: Recipe) {
+    if (isSignedIn) setOpenRecipe(recipe);
+    else setShowSignInPrompt(true);
+  }
 
   return <>
     <section className="page-intro recipes-intro">
@@ -34,8 +56,8 @@ export function RecipesPage() {
           key={recipe.slug}
           role="button"
           tabIndex={0}
-          onClick={() => setOpenRecipe(recipe)}
-          onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); setOpenRecipe(recipe); } }}
+          onClick={() => handleOpenRecipe(recipe)}
+          onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); handleOpenRecipe(recipe); } }}
         >
           <div className="recipe-photo">
             <img src={recipe.image} alt={recipe.title} loading="lazy" onError={(event) => { event.currentTarget.style.display = 'none'; }} />
@@ -48,9 +70,10 @@ export function RecipesPage() {
             <span><FlameIcon /> {recipe.nutrition.calories} kcal</span>
             <span><BoltIcon /> {recipe.nutrition.protein}g protein</span>
           </div>
-          <span className="recipe-link">Click for ingredients, preparation and nutrition →</span>
+          <span className="recipe-link">{isSignedIn ? 'Click for ingredients, preparation and nutrition →' : 'Sign in to view ingredients and preparation →'}</span>
         </article>)}
       </section>}
     {openRecipe && <RecipeModal recipe={openRecipe} onClose={() => setOpenRecipe(null)} />}
+    {showSignInPrompt && <SignInPromptModal onClose={() => setShowSignInPrompt(false)} />}
   </>;
 }

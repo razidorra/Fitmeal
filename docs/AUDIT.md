@@ -1,5 +1,17 @@
 # FitMeal change protocol
 
+## 2026-08-24 — Backend tests, error boundary, and deployment config
+
+### Implemented
+
+- Added a backend test suite: Vitest + Supertest + `mongodb-memory-server` (a real, ephemeral in-memory MongoDB, not mocked model methods), runnable via `npm run test -w backend` (or `npm test` from the repo root). 21 tests across 3 files:
+  - `meal-plan.service.test.ts` — pure unit tests for `getTargets` (the Mifflin-St Jeor calorie/macro formula: goal adjustment, sex offset, activity scaling) and `buildPlan` (one meal per time slot, each with a title/image/ingredients/steps, calorie shares summing back to the target).
+  - `ownership.test.ts` — direct tests of `findOwnedProfile` against a real database: returns the profile for its owner, `null` for a different user's id, `null` (not a throw) for a malformed id, `null` for a missing id.
+  - `profile.routes.test.ts` — Supertest integration tests against the exported `app` (no real server or Clerk needed — `@clerk/express` is mocked so tests can switch "who's signed in"), covering the ownership scoping end-to-end: `user_b` can neither read `user_a`'s profile via `GET /latest` nor edit it via `PATCH /:profileId` (404, and the original data is left untouched), plus the 401/400/201/200 happy- and unhappy-path status codes.
+  - Excluded `**/*.test.ts` and `src/test/` from the `tsc` build (`backend/tsconfig.json`) so test files don't leak into `dist/`.
+- Added `frontend/src/shared/components/ErrorBoundary.tsx` (a class component — React error boundaries can't be hooks) and wired it in two places: around each routed page's `<Outlet />` in `router.tsx`, so a crash in one page falls back to a "Something went wrong — try again / go home" message while the header/nav/footer stay usable; and around the whole `<App />` in `main.tsx` as a last-resort net for errors above the router itself. Verified with a temporary forced-throw + Playwright check (fallback renders, nav survives, recovery works), then reverted.
+- Added `render.yaml` (a Render Blueprint deploying the API as a Node web service and the frontend as a static site from this one repo) and `docs/DEPLOYMENT.md` (a from-scratch walkthrough: push to GitHub, create the Blueprint, fill in secrets, point the frontend's `VITE_API_URL` at the API's assigned URL once it exists, redeploy). Secrets are left as manual (`sync: false`) fields the user fills in on Render's dashboard, not guessed or hardcoded — actually creating the Render account and running the deploy is outside what this environment can do, so this is configuration plus instructions, not a completed live deployment.
+
 ## 2026-08-21 — Per-user auth, daily plans, rule-based reviews, and light/dark theming
 
 ### Implemented

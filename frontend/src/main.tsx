@@ -4,6 +4,7 @@ import { RouterProvider } from '@tanstack/react-router';
 import { ClerkProvider } from '@clerk/react';
 import { router } from './routes/router';
 import { applyTheme, getStoredTheme } from './shared/theme';
+import { ErrorBoundary } from './shared/components/ErrorBoundary';
 import './styles.css';
 
 // Applied synchronously before the first paint, so there's no flash of the wrong theme on load.
@@ -36,6 +37,10 @@ function App() {
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <App />
+    {/* Last-resort net for errors above the router itself (e.g. ClerkProvider setup) — the
+        per-page boundary in router.tsx handles everything below it, keeping nav usable there. */}
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>
   </React.StrictMode>,
 );

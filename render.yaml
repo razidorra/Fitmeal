@@ -1,0 +1,49 @@
+# Render Blueprint — deploys both the API and the static frontend from this one repo.
+# On Render: New + -> Blueprint -> select this repo -> Render reads this file and creates both
+# services below. Env vars marked `sync: false` are secrets you paste in yourself in the Render
+# dashboard after the first deploy; nothing secret lives in this file or in git.
+# See docs/DEPLOYMENT.md for the full walkthrough.
+
+services:
+  - type: web
+    name: fitmeal-api
+    runtime: node
+    plan: free
+    rootDir: .
+    buildCommand: npm install && npm run build -w backend
+    startCommand: npm run start
+    healthCheckPath: /api/health
+    envVars:
+      - key: PORT
+        value: 4000
+      - key: MONGODB_URI
+        sync: false
+      - key: CLERK_PUBLISHABLE_KEY
+        sync: false
+      - key: CLERK_SECRET_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-flash-latest
+
+staticSites:
+  - name: fitmeal-web
+    rootDir: .
+    buildCommand: npm install && npm run build -w frontend
+    staticPublishPath: frontend/dist
+    envVars:
+      # Set once you know the API service's real Render URL (shown on its dashboard page after
+      # the first deploy), e.g. https://fitmeal-api.onrender.com/api — then redeploy this static
+      # site. Left as a manual field rather than guessed, since Render only assigns the hostname
+      # once the service actually exists. See docs/DEPLOYMENT.md.
+      - key: VITE_API_URL
+        sync: false
+      - key: VITE_CLERK_PUBLISHABLE_KEY
+        sync: false
+    routes:
+      # Client-side routing (TanStack Router) — any deep link (e.g. /recipes/some-slug) must
+      # still serve index.html so the router can take over, instead of a server 404.
+      - type: rewrite
+        source: /*
+        destination: /index.html

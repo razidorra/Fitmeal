@@ -8,9 +8,12 @@ import { RecipesPage } from '../features/recipes/RecipesPage';
 import { AccountPage } from '../features/account/AccountPage';
 import { isClerkConfigured } from '../shared/clerk';
 import { SiteFooter } from '../shared/components/SiteFooter';
+import { ErrorBoundary } from '../shared/components/ErrorBoundary';
 
 function Layout() {
-  return <><header><Link to="/" className="brand"><span className="brand-mark">♡</span>FitMeal</Link><nav><Link to="/" activeProps={{ className: 'active' }}>Home</Link><Link to="/recipes" activeProps={{ className: 'active' }}>Recipes</Link><Link to="/planner" activeProps={{ className: 'active' }}>Meal planner</Link><Link to="/progress" activeProps={{ className: 'active' }}>Progress</Link>{isClerkConfigured && <Show when="signed-in"><Link to="/account" activeProps={{ className: 'active' }}>Profile</Link></Show>}</nav>{isClerkConfigured && <div className="account-links"><Show when="signed-out"><SignInButton><button className="auth-link">Log in</button></SignInButton><SignUpButton><button className="sign-up">Sign up</button></SignUpButton></Show><Show when="signed-in"><UserButton /></Show></div>}</header><main><Outlet /><SiteFooter /></main></>;
+  // The boundary wraps only the routed page content, not the header/nav/footer — so a crash on
+  // one page still leaves navigation usable to get somewhere else.
+  return <><header><Link to="/" className="brand"><span className="brand-mark">♡</span>FitMeal</Link><nav><Link to="/" activeProps={{ className: 'active' }}>Home</Link><Link to="/recipes" activeProps={{ className: 'active' }}>Recipes</Link><Link to="/planner" activeProps={{ className: 'active' }}>Meal planner</Link><Link to="/progress" activeProps={{ className: 'active' }}>Progress</Link>{isClerkConfigured && <Show when="signed-in"><Link to="/account" activeProps={{ className: 'active' }}>Profile</Link></Show>}</nav>{isClerkConfigured && <div className="account-links"><Show when="signed-out"><SignInButton><button className="auth-link">Log in</button></SignInButton><SignUpButton><button className="sign-up">Sign up</button></SignUpButton></Show><Show when="signed-in"><UserButton /></Show></div>}</header><main><ErrorBoundary><Outlet /></ErrorBoundary><SiteFooter /></main></>;
 }
 
 const rootRoute = createRootRoute({ component: Layout });
