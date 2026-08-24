@@ -40,13 +40,37 @@ npm run test -w backend
 ```
 
 Runs the backend suite (Vitest + Supertest + an in-memory MongoDB via `mongodb-memory-server` —
-no real database or Clerk account needed): pure unit tests for the calorie/macro formula and meal
-plan builder, and route-level tests for `/api/profiles` covering the per-user ownership scoping
-(`findOwnedProfile`) — that one signed-in user can never read or edit another user's profile.
+no real database or Clerk account needed): pure unit tests for the calorie/macro formula, the
+meal-plan variety/goal-selection logic, and cheat-day detection, plus route-level tests for
+`/api/profiles` covering the per-user ownership scoping (`findOwnedProfile`) — that one signed-in
+user can never read or edit another user's profile.
 
 The frontend has an `ErrorBoundary` (`frontend/src/shared/components/ErrorBoundary.tsx`) around
 each routed page, so a crash in one page shows a "Something went wrong — try again" fallback
 instead of a blank screen, while the header/nav/footer stay usable.
+
+## Meal planning
+
+Each day's plan is generated per profile (get-or-create by the user's own local date) with one
+meal per Breakfast/Lunch/Snack/Dinner slot. The dish for each slot is chosen from a small pool,
+deterministically, from the date, the profile's goal, and the slot itself — so the same day always
+shows the same plan on reload (only the "Refresh plan" button forces a new pick for that day),
+while different days spread out across the pool instead of repeating the same four dishes. A
+"lose" goal and a "maintain"/"gain" goal draw from separate pools, so the plan itself looks
+different for those two directions, not only differently portioned.
+
+Every Sunday is a cheat day: the plan carries a free-choice placeholder for all four slots instead
+of a fixed menu, shown as its own banner with no calorie targets or confirm/swap controls.
+
+Swapping a meal for something else, or confirming it was eaten as suggested, is always plain and
+rule-based — see [AI assistant (Gemini)](#ai-assistant-gemini) below for the one feature that
+actually calls an AI.
+
+## Account status
+
+When signed in, the header shows the account's avatar, name (or email), a green "online"
+indicator, and a directly-clickable **Log out** button — sign-out doesn't require opening a menu
+first.
 
 ## Configuration
 
@@ -81,6 +105,8 @@ Without a key, the assistant returns a clear "not set up yet" message instead of
 The whole site supports six themes — "Midnight Gold" (dark, default), "Warm Light", "Rose Pink", "Ocean Blue", "Forest Green", and "Slate Gray" — toggled from the Account page (`/account`, signed-in only) and saved per device in `localStorage`.
 
 Styling is Tailwind CSS (v4) utility classes throughout. The six themes stay CSS custom properties (`--bg-page`, `--text-primary`, `--accent`, etc.) in `frontend/src/styles.css`, swapped via a `data-theme` attribute on `<html>` — Tailwind's color utilities (`bg-page`, `text-ink`, `text-accent`, ...) are mapped onto those same variables via `@theme inline`, so every utility class already follows theme changes with no extra work. A small `@layer base` block covers genuinely global element defaults (`button`, `h1`–`h3`, `input`/`select`); everything else is per-component utility classes in JSX.
+
+Every page also carries a subtle background photo (`frontend/public/images/backG.jpg`) behind all content, tinted with each theme's own page color so it reads as ambient texture rather than competing with text — every card/panel keeps its own solid background, so the photo only shows through in the gaps between them.
 
 ## Clerk authentication
 
