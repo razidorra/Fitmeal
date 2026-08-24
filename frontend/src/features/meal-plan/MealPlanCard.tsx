@@ -20,6 +20,14 @@ export function MealPlanCard({ plan, onPlanChange }: { plan: MealPlan; onPlanCha
     setExpandedTime(expandedTime === time ? null : time);
   }
 
+  if (plan.isCheatDay) {
+    return <section className="bg-surface-alt border border-line-strong p-9 text-center">
+      <span className="text-4xl" aria-hidden="true">🎉</span>
+      <h2 className="mt-3 mb-2">It's your cheat day!</h2>
+      <p className="text-ink-soft max-w-125 mx-auto leading-normal">Eat what you enjoy today — no fixed menu, no calorie targets to hit. A planned treat is part of a sustainable plan, not a setback. Your regular meal plan is back tomorrow.</p>
+    </section>;
+  }
+
   async function handleConfirm(time: string) {
     setConfirmingTime(time);
     setErrorTime(null);

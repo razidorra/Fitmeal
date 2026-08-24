@@ -1,5 +1,15 @@
 # FitMeal change protocol
 
+## 2026-08-24 — Daily meal variety, goal-based menus, and a weekly cheat day
+
+### Implemented
+
+- Meal plans no longer repeat the same four dishes every day. Each time slot (Breakfast/Lunch/Snack/Dinner) now has a small pool of dishes, and `buildPlan` deterministically picks one per slot from a hash of the date + goal + slot name — different days spread across the pool, while reloading the same day still shows the same plan (matches the existing get-or-create-per-day route behavior).
+- Every dish is tagged with the goals it suits, and the "lose" pool and "maintain"/"gain" pool are disjoint by design — a "lose" profile and a "gain" profile now see genuinely different meals on the same day, not just differently sized portions of the same four dishes. New dishes reuse already-shipped assets: recipe photos already in `frontend/public/images/recipes/` (resolved as a relative path against the frontend's own origin, no new hotlink needed) plus a few additional Unsplash photos already used elsewhere in the app's own recipe data, each curl-verified before use.
+- Added a weekly cheat day (every Sunday): `buildPlan` returns `isCheatDay: true` and a free-choice placeholder for all four slots instead of a fixed menu. `MealPlanCard` shows a dedicated celebratory banner in place of the normal meal list on that day (no confirm/swap controls — there's nothing to compare against), and `PlanHistory` shows a "Cheat day 🎉" badge with dashes instead of a stale "Not logged / 0 kcal" reading for past cheat days.
+- `buildPlan(profile, date)` now takes the date as an explicit argument instead of only the profile, since both the day-to-day variety and the cheat-day check depend on it.
+- Extended the backend test suite (5 new tests, 25 total, still zero AI/network dependency): the menu differs across a work week, "lose" and "gain" produce different dishes on the same day, Sundays are marked as a cheat day with zero-calorie placeholders, and other weekdays are not.
+
 ## 2026-08-24 — Migrate all frontend styling to Tailwind CSS
 
 ### Implemented

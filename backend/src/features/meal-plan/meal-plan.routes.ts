@@ -28,7 +28,7 @@ mealPlanRouter.post('/generate/:profileId', async (req, res, next) => {
       if (existing) { res.json(existing); return; }
     }
 
-    const built = buildPlan(profile);
+    const built = buildPlan(profile, date);
     const plan = await MealPlan.findOneAndUpdate(
       { profileId: profile.id, date },
       { profileId: profile.id, date, ...built },
