@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { useAuth } from '@clerk/react';
 import { api } from '../../shared/api';
+import { resolveImage } from '../../shared/assets';
 import type { MealPlan, MealVerdict } from '../../shared/types';
 
 const verdictClass: Record<MealVerdict, string> = { 'great fit': 'border-good text-good-text', reasonable: 'border-accent text-accent-soft', 'poor fit': 'border-poor text-poor-text' };
@@ -82,7 +83,7 @@ export function MealPlanCard({ plan, onPlanChange }: { plan: MealPlan; onPlanCha
         const hasIngredients = Boolean(detailIngredients && detailIngredients.length > 0);
 
         return <article className="grid grid-cols-[64px_100px_1fr_auto] max-[720px]:grid-cols-1 gap-4 p-6 border-b border-line items-center last:border-b-0" key={meal.time}>
-          <div className="w-16 h-16 rounded-xl bg-[linear-gradient(135deg,var(--color-ph1),var(--color-ph2))] overflow-hidden">{(meal.image ?? meal.originalImage) && <img src={meal.image ?? meal.originalImage} alt={meal.title} loading="lazy" onError={(event) => { event.currentTarget.style.display = 'none'; }} className="w-full h-full object-cover block" />}</div>
+          <div className="w-16 h-16 rounded-xl bg-[linear-gradient(135deg,var(--color-ph1),var(--color-ph2))] overflow-hidden">{(meal.image ?? meal.originalImage) && <img src={resolveImage(meal.image ?? meal.originalImage!)} alt={meal.title} loading="lazy" onError={(event) => { event.currentTarget.style.display = 'none'; }} className="w-full h-full object-cover block" />}</div>
           <span className="font-mono text-xs text-accent">{meal.time}</span>
           <div>
             <h3 className="cursor-pointer select-none flex items-baseline gap-2" role="button" tabIndex={0} onClick={() => toggleExpanded(meal.time)} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') toggleExpanded(meal.time); }}>

@@ -1,5 +1,6 @@
 import { Link, useParams } from '@tanstack/react-router';
 import { goalLabels, recipes } from './recipes';
+import { resolveImage } from '../../shared/assets';
 
 export function RecipeDetailsPage() {
   const { recipeSlug } = useParams({ from: '/recipes/$recipeSlug' });
@@ -14,7 +15,7 @@ export function RecipeDetailsPage() {
   return <article className="max-w-250">
     <Link className="text-accent font-bold no-underline hover:underline" to="/recipes">← All recipes</Link>
     <div className="w-full mt-7 mb-0 aspect-16/7 border border-line overflow-hidden bg-[linear-gradient(135deg,var(--color-ph1),var(--color-ph2))]">
-      <img src={recipe.image} alt={recipe.title} onError={(event) => { event.currentTarget.style.display = 'none'; }} className="w-full h-full object-cover block" />
+      <img src={resolveImage(recipe.image)} alt={recipe.title} onError={(event) => { event.currentTarget.style.display = 'none'; }} className="w-full h-full object-cover block" />
     </div>
     <span className="block mt-7 text-accent text-[13px] font-bold">For {goalLabels[recipe.goal]}</span>
     <h1 className="text-[clamp(46px,6vw,78px)]">{recipe.title}</h1>

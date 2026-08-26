@@ -6,6 +6,7 @@ import { BoltIcon, ClockIcon, FlameIcon } from './icons';
 import { RecipeModal } from './RecipeModal';
 import { SignInPromptModal } from './SignInPromptModal';
 import { isClerkConfigured } from '../../shared/clerk';
+import { resolveImage } from '../../shared/assets';
 
 const goalFilters: Array<Goal | 'all'> = ['all', 'lose', 'maintain', 'gain'];
 const categoryFilters: Array<RecipeCategory | 'all'> = ['all', 'meal', 'fruit', 'snack', 'dessert', 'smoothie'];
@@ -69,7 +70,7 @@ function RecipesGrid({ isSignedIn }: { isSignedIn: boolean }) {
           onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); handleOpenRecipe(recipe); } }}
         >
           <div className="relative aspect-4/3 overflow-hidden bg-[linear-gradient(135deg,var(--color-ph1),var(--color-ph2))] border-b border-line">
-            <img src={recipe.image} alt={recipe.title} loading="lazy" onError={(event) => { event.currentTarget.style.display = 'none'; }} className="w-full h-full object-cover block transition-transform duration-500 ease-out group-hover:scale-105 group-focus-visible:scale-105" />
+            <img src={resolveImage(recipe.image)} alt={recipe.title} loading="lazy" onError={(event) => { event.currentTarget.style.display = 'none'; }} className="w-full h-full object-cover block transition-transform duration-500 ease-out group-hover:scale-105 group-focus-visible:scale-105" />
             <span className="absolute top-4 left-4 rounded-full border border-line bg-page/90 px-3 py-1.5 text-[11px] font-bold text-accent backdrop-blur-md">For {goalLabels[recipe.goal]}</span>
           </div>
           <div className="flex flex-1 flex-col items-start p-6">

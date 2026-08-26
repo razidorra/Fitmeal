@@ -1,5 +1,19 @@
 # FitMeal change protocol
 
+## 2026-08-26 — Fix local recipe/meal images 404ing on GitHub Pages
+
+### Implemented
+
+- Added `frontend/src/shared/assets.ts` (`resolveImage`), which prefixes a local (non-`https://`) image path with `import.meta.env.BASE_URL` and leaves hotlinked Unsplash URLs untouched. Root-absolute paths to files in `public/` (e.g. `/images/recipes/*.jpg`) are not rewritten by Vite when `base` isn't `/`, so on GitHub Pages (`base: '/Fitmeal/'`) they were resolving to the domain root and 404ing — visible as several recipe cards missing their photo.
+- Applied it everywhere a recipe or meal-plan image is rendered from data (own recipes and the backend's meal-plan API both return these paths as plain strings): `RecipesPage`, `RecipeModal`, `RecipeDetailsPage`, `MealPlanCard`, `PlanHistory`.
+- The homepage hero image and the whole-site background photo (`styles.css`, previously a bare `url('/images/backG.jpg')`) go through the same helper — the background photo is set as a `--bg-photo` CSS variable from `main.tsx` (alongside the existing synchronous theme application) since a plain `.css` file can't read `import.meta.env` itself; the old literal stays as its `var(--bg-photo, ...)` fallback.
+
+### Verification
+
+- `GITHUB_PAGES=true npm run build -w frontend`: no bare `/images/...` string literals remain in the built JS, and the built CSS/JS both resolve to `/Fitmeal/images/...`.
+- A plain `npm run build -w frontend` (Render/local) still resolves to `/images/...`, confirming that path is unaffected.
+- `npm run build` succeeds for both workspaces and `npm test` passes all 30 backend tests.
+
 ## 2026-08-26 — GitHub Pages deployment for the frontend
 
 ### Implemented

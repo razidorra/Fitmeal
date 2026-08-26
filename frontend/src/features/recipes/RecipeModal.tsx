@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import type { Recipe } from './recipes';
+import { resolveImage } from '../../shared/assets';
 
 export function RecipeModal({ recipe, onClose }: { recipe: Recipe; onClose: () => void }) {
   // Lock page scroll while the modal is open, and let Escape close it like the backdrop click does.
@@ -23,7 +24,7 @@ export function RecipeModal({ recipe, onClose }: { recipe: Recipe; onClose: () =
   return <div className="fixed inset-0 bg-[rgba(6,6,5,.82)] backdrop-blur-sm flex items-center justify-center p-8 max-[560px]:p-3 z-100 animate-[recipe-modal-fade_180ms_ease]" onClick={onClose}>
     <div className="bg-surface border border-line rounded-3xl max-w-260 w-full max-h-[88vh] grid grid-cols-2 max-[800px]:grid-cols-1 max-[800px]:max-h-[92vh] max-[800px]:overflow-y-auto overflow-hidden shadow-[0_30px_90px_rgba(0,0,0,.5)]" role="dialog" aria-modal="true" aria-label={recipe.title} onClick={(event) => event.stopPropagation()}>
       <div className="bg-[linear-gradient(135deg,var(--color-ph1),var(--color-ph2))] min-h-full max-[800px]:aspect-video">
-        <img src={recipe.image} alt={recipe.title} onError={(event) => { event.currentTarget.style.display = 'none'; }} className="w-full h-full object-cover block" />
+        <img src={resolveImage(recipe.image)} alt={recipe.title} onError={(event) => { event.currentTarget.style.display = 'none'; }} className="w-full h-full object-cover block" />
       </div>
       <div className="relative p-10 overflow-y-auto">
         <button type="button" onClick={onClose} aria-label="Close" className="absolute top-5 right-5 w-9.5 h-9.5 rounded-full bg-surface-alt border border-line-strong text-ink text-xl leading-none grid place-items-center p-0 hover:bg-hover">×</button>

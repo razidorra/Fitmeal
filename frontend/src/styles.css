@@ -96,7 +96,7 @@
     background-image:
       radial-gradient(circle at 15% 5%, rgba(var(--bg-page-rgb), .74), rgba(var(--bg-page-rgb), .96) 42%),
       linear-gradient(rgba(var(--bg-page-rgb), .92), rgba(var(--bg-page-rgb), .96)),
-      url('/images/backG.jpg');
+      var(--bg-photo, url('/images/backG.jpg'));
     background-size: cover;
     background-position: center;
     background-attachment: fixed;

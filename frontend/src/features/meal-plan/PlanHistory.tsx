@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { MealPlan } from '../../shared/types';
 import { formatDisplayDate, getLocalDateString, getWeekStart } from '../../shared/date';
+import { resolveImage } from '../../shared/assets';
 
 function sum(plan: MealPlan, key: 'calories' | 'protein') {
   return plan.meals.reduce((total, meal) => total + meal[key], 0);
@@ -36,7 +37,7 @@ function DayRow({ plan, isExpanded, onToggle }: { plan: MealPlan; isExpanded: bo
       {plan.isCheatDay
         ? <p className="m-0">Eat what you enjoy today — no fixed menu, no calorie targets.</p>
         : plan.meals.map((meal) => <div className="flex items-center gap-2.5" key={meal.time}>
-          {(meal.image ?? meal.originalImage) && <img src={meal.image ?? meal.originalImage} alt={meal.title} className="w-8.5 h-8.5 object-cover shrink-0" onError={(event) => { event.currentTarget.style.display = 'none'; }} />}
+          {(meal.image ?? meal.originalImage) && <img src={resolveImage(meal.image ?? meal.originalImage!)} alt={meal.title} className="w-8.5 h-8.5 object-cover shrink-0" onError={(event) => { event.currentTarget.style.display = 'none'; }} />}
           <span><strong>{meal.time}:</strong> {meal.originalTitle ? <><s className="text-ink-muted decoration-ink-muted">{meal.originalTitle}</s> → {meal.title}</> : meal.title}</span>
         </div>)}
     </div>}

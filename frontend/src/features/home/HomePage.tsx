@@ -1,4 +1,4 @@
-import { useState } from 'react'; import { Link } from '@tanstack/react-router'; import { Reveal } from '../../shared/components/Reveal';
+import { useState } from 'react'; import { Link } from '@tanstack/react-router'; import { Reveal } from '../../shared/components/Reveal'; import { resolveImage } from '../../shared/assets';
 
 // The phone mockup is deliberately theme-independent (always dark, like a real phone screenshot)
 // except for its `small` text and progress-bar fill, which intentionally follow the site accent —
@@ -74,7 +74,11 @@ export function HomePage() {
         </div>
       </Reveal>
       <Reveal delay={170} className="relative h-118.75 max-[720px]:h-100 max-[720px]:w-full max-[720px]:max-w-175 max-[720px]:ml-auto">
-        <div aria-label="Balanced meal beside a FitMeal shaker and meal-plan notebook" className="ml-17.5 h-117.5 rounded-3xl border border-line bg-[linear-gradient(120deg,rgba(0,0,0,.05),rgba(0,0,0,.2)),url('/images/hero.jpg')] bg-cover bg-right shadow-[0_30px_80px_rgba(0,0,0,.28)] max-[720px]:ml-7.5 max-[720px]:h-100" />
+        <div
+          aria-label="Balanced meal beside a FitMeal shaker and meal-plan notebook"
+          style={{ backgroundImage: `linear-gradient(120deg, rgba(0,0,0,.05), rgba(0,0,0,.2)), url('${resolveImage('/images/hero.jpg')}')` }}
+          className="ml-17.5 h-117.5 rounded-3xl border border-line bg-cover bg-right shadow-[0_30px_80px_rgba(0,0,0,.28)] max-[720px]:ml-7.5 max-[720px]:h-100"
+        />
         <PhonePreview />
       </Reveal>
     </section>
