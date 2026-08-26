@@ -4,7 +4,7 @@ import { api } from '../../shared/api';
 import type { MealPlan, MealVerdict } from '../../shared/types';
 
 const verdictClass: Record<MealVerdict, string> = { 'great fit': 'border-good text-good-text', reasonable: 'border-accent text-accent-soft', 'poor fit': 'border-poor text-poor-text' };
-const swapToggleClass = 'bg-transparent border-0 p-0 mt-2 text-accent text-[13px] font-semibold underline cursor-pointer inline-block hover:bg-transparent hover:text-accent-hover';
+const swapToggleClass = 'rounded-lg bg-transparent border border-line-strong px-4 py-2.25 text-accent text-[13px] font-semibold cursor-pointer hover:bg-hover hover:border-line-strong hover:text-accent-hover';
 
 export function MealPlanCard({ plan, onPlanChange }: { plan: MealPlan; onPlanChange: (plan: MealPlan) => void }) {
   const { getToken } = useAuth();
@@ -21,7 +21,7 @@ export function MealPlanCard({ plan, onPlanChange }: { plan: MealPlan; onPlanCha
   }
 
   if (plan.isCheatDay) {
-    return <section className="bg-surface-alt border border-line-strong p-9 text-center">
+    return <section className="rounded-3xl bg-surface-alt border border-line-strong p-9 text-center shadow-[0_18px_50px_rgba(0,0,0,.1)]">
       <span className="text-4xl" aria-hidden="true">🎉</span>
       <h2 className="mt-3 mb-2">It's your cheat day!</h2>
       <p className="text-ink-soft max-w-125 mx-auto leading-normal">Eat what you enjoy today — no fixed menu, no calorie targets to hit. A planned treat is part of a sustainable plan, not a setback. Your regular meal plan is back tomorrow.</p>
@@ -68,21 +68,21 @@ export function MealPlanCard({ plan, onPlanChange }: { plan: MealPlan; onPlanCha
   }
 
   return <>
-    <section className="grid grid-cols-4 max-[720px]:grid-cols-2 bg-surface-alt text-ink border border-line-strong mb-5">
+    <section className="grid grid-cols-4 max-[720px]:grid-cols-2 overflow-hidden rounded-2xl bg-surface-alt text-ink border border-line-strong mb-5 shadow-[0_12px_35px_rgba(0,0,0,.08)]">
       {Object.entries(plan.targets).map(([key, value], index) => <div key={key} className={`p-6.5 border-line-strong max-[720px]:border-b ${index < 3 ? 'border-r' : ''} ${index === 1 ? 'max-[720px]:border-r-0' : ''}`}>
         <strong className="block font-display font-semibold text-[29px] text-accent">{value}{key === 'calories' ? '' : 'g'}</strong>
         <span className="block capitalize text-ink-soft text-[13px]">{key}</span>
       </div>)}
     </section>
-    <section className="bg-surface border border-line">
+    <section className="overflow-hidden rounded-2xl bg-surface border border-line shadow-[0_18px_50px_rgba(0,0,0,.1)]">
       {plan.meals.map((meal) => {
         const detailIngredients = meal.isCustom ? meal.originalIngredientsList : meal.ingredientsList;
         const detailSteps = meal.isCustom ? meal.originalSteps : meal.steps;
         const hasDetails = (detailIngredients && detailIngredients.length > 0) || (detailSteps && detailSteps.length > 0);
         const hasIngredients = Boolean(detailIngredients && detailIngredients.length > 0);
 
-        return <article className="grid grid-cols-[56px_100px_1fr_auto] max-[720px]:grid-cols-1 gap-4 p-6 border-b border-line items-center last:border-b-0" key={meal.time}>
-          <div className="w-14 h-14 bg-[linear-gradient(135deg,var(--color-ph1),var(--color-ph2))] overflow-hidden">{(meal.image ?? meal.originalImage) && <img src={meal.image ?? meal.originalImage} alt={meal.title} loading="lazy" onError={(event) => { event.currentTarget.style.display = 'none'; }} className="w-full h-full object-cover block" />}</div>
+        return <article className="grid grid-cols-[64px_100px_1fr_auto] max-[720px]:grid-cols-1 gap-4 p-6 border-b border-line items-center last:border-b-0" key={meal.time}>
+          <div className="w-16 h-16 rounded-xl bg-[linear-gradient(135deg,var(--color-ph1),var(--color-ph2))] overflow-hidden">{(meal.image ?? meal.originalImage) && <img src={meal.image ?? meal.originalImage} alt={meal.title} loading="lazy" onError={(event) => { event.currentTarget.style.display = 'none'; }} className="w-full h-full object-cover block" />}</div>
           <span className="font-mono text-xs text-accent">{meal.time}</span>
           <div>
             <h3 className="cursor-pointer select-none flex items-baseline gap-2" role="button" tabIndex={0} onClick={() => toggleExpanded(meal.time)} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') toggleExpanded(meal.time); }}>
@@ -90,7 +90,7 @@ export function MealPlanCard({ plan, onPlanChange }: { plan: MealPlan; onPlanCha
             </h3>
             <p className="m-0 text-ink-muted">{meal.ingredients}</p>
 
-            {expandedTime === meal.time && <div className="my-2.5 py-3.5 px-4 bg-surface-alt border border-line text-ink-soft text-[13px]">
+            {expandedTime === meal.time && <div className="my-2.5 py-3.5 px-4 rounded-xl bg-surface-alt border border-line text-ink-soft text-[13px]">
               {meal.isCustom && hasDetails && <div className="flex items-center gap-2.5 mb-2.5">
                 {meal.originalImage && <img src={meal.originalImage} alt={meal.originalTitle} className="w-8.5 h-8.5 object-cover shrink-0" onError={(event) => { event.currentTarget.style.display = 'none'; }} />}
                 <p className="m-0 italic text-ink-muted">{meal.time}: {meal.originalTitle}</p>
@@ -118,7 +118,7 @@ export function MealPlanCard({ plan, onPlanChange }: { plan: MealPlan; onPlanCha
 
             {!meal.isCustom && meal.confirmed === true && <p className="text-good-text text-[13px] font-semibold mt-2">✓ As planned</p>}
 
-            {swappingTime === meal.time && <form className="flex gap-2 mt-2" onSubmit={(event) => handleSwap(event, meal.time)}>
+            {swappingTime === meal.time && <form className="flex gap-2 mt-3 max-[560px]:flex-col" onSubmit={(event) => handleSwap(event, meal.time)}>
               <input value={description} onChange={(event) => setDescription(event.target.value)} placeholder="e.g. Grilled cheese sandwich with fries" disabled={isSaving} autoFocus className="flex-1 text-sm p-2.25" />
               <button type="submit" className="px-3.5 py-2.25 text-[13px]" disabled={isSaving}>{isSaving ? 'Saving…' : 'Save'}</button>
               <button type="button" className="px-3.5 py-2.25 text-[13px]" onClick={() => setSwappingTime(null)} disabled={isSaving}>Cancel</button>

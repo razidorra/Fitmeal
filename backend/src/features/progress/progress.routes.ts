@@ -42,9 +42,9 @@ interface ReviewStats {
   weeklyRateKg: number | null;
   checkinCount: number;
   onTrack: boolean | null;
-  mealsChecked: number;
-  greatFitCount: number;
-  poorFitCount: number;
+  loggedMealCount: number;
+  confirmedMealCount: number;
+  changedMealCount: number;
 }
 
 // Rule-based review — no AI involved, so it never depends on any external quota. Every sentence
@@ -59,7 +59,7 @@ function buildReviewSummary(stats: ReviewStats): string {
 
   if (stats.onTrack) {
     let message = `Great work — you're on track for your ${stats.goal} goal, averaging ${pace} kg/week in the right direction. Keep following your plan and stick with your regular check-ins.`;
-    if (stats.mealsChecked > 0 && stats.poorFitCount === 0) message += ' Your logged meal swaps have all been solid fits too — nice consistency.';
+    if (stats.loggedMealCount > 0) message += ` On your latest plan, you logged ${stats.loggedMealCount} meal${stats.loggedMealCount === 1 ? '' : 's'}: ${stats.confirmedMealCount} as planned and ${stats.changedMealCount} changed.`;
     return message;
   }
 
@@ -78,8 +78,8 @@ function buildReviewSummary(stats: ReviewStats): string {
       : 'your weight is trending down — add a bit more food to hold steady');
   }
 
-  if (stats.poorFitCount > 0) {
-    suggestions.push(`${stats.poorFitCount} of your ${stats.mealsChecked} logged meal swap${stats.mealsChecked === 1 ? '' : 's'} ${stats.poorFitCount === 1 ? 'was' : 'were'} flagged as a poor fit for your goal — that's a good place to start`);
+  if (stats.changedMealCount > 0) {
+    suggestions.push(`you changed ${stats.changedMealCount} meal${stats.changedMealCount === 1 ? '' : 's'} on your latest plan — review the portions and ingredients in those choices when deciding what to adjust`);
   }
 
   return `You're not quite on track for your ${stats.goal} goal right now: ${suggestions.join('. ')}. Log another check-in soon to see if the adjustment helps.`;
@@ -115,14 +115,15 @@ progressRouter.post('/:profileId/review', async (req, res, next) => {
       onTrack = goal === 'maintain' ? Math.abs(weeklyRateKg) < 0.3 : weeklyRateKg * goalDirection > 0.05;
     }
 
-    const meals = ((latestPlan?.get('meals') as Array<Record<string, unknown>>) ?? []).filter((meal) => typeof meal.verdict === 'string');
-    const greatFitCount = meals.filter((meal) => meal.verdict === 'great fit').length;
-    const poorFitCount = meals.filter((meal) => meal.verdict === 'poor fit').length;
+    const meals = (latestPlan?.get('meals') as Array<Record<string, unknown>>) ?? [];
+    const confirmedMealCount = meals.filter((meal) => meal.confirmed === true).length;
+    const changedMealCount = meals.filter((meal) => meal.isCustom === true).length;
+    const loggedMealCount = confirmedMealCount + changedMealCount;
 
     const stats: ReviewStats = {
       goal, totalChangeKg, weeklyRateKg,
       checkinCount: checkins.length, onTrack: checkins.length >= 2 ? onTrack : null,
-      mealsChecked: meals.length, greatFitCount, poorFitCount,
+      loggedMealCount, confirmedMealCount, changedMealCount,
     };
 
     res.json({ stats: { ...stats, firstWeight, latestWeight }, summary: buildReviewSummary(stats) });

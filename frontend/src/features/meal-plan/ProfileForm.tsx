@@ -27,9 +27,9 @@ export function ProfileForm({ onSave, isSaving, initialProfile, submitLabel = 'S
     onSave({ name, age, sex, heightCm, weightKg, activity, goal });
   }
 
-  const labelClass = 'text-[13px] text-ink-soft grid gap-1.5';
+  const labelClass = 'text-[12px] font-semibold text-ink-soft grid gap-2';
 
-  return <form className="grid grid-cols-2 max-[720px]:grid-cols-1 gap-3.75" onSubmit={handleSubmit}>
+  return <form className="grid grid-cols-2 max-[720px]:grid-cols-1 gap-4.5 rounded-2xl border border-line bg-surface p-7 max-[560px]:p-5 shadow-[0_18px_50px_rgba(0,0,0,.1)]" onSubmit={handleSubmit}>
     <label className={labelClass}>Name<input value={name} onChange={(event) => setName(event.target.value)} required /></label>
     <label className={labelClass}>Age<input type="number" min={16} max={100} value={age} onChange={(event) => setAge(Number(event.target.value))} required /></label>
     <label className={labelClass}>Sex
@@ -51,6 +51,6 @@ export function ProfileForm({ onSave, isSaving, initialProfile, submitLabel = 'S
         {goals.map((option) => <option key={option} value={option}>{option}</option>)}
       </select>
     </label>
-    <button type="submit" className="self-end" disabled={isSaving}>{isSaving ? savingLabel : submitLabel}</button>
+    <button type="submit" className="self-end min-h-12 shadow-[0_8px_22px_rgba(0,0,0,.16)]" disabled={isSaving}>{isSaving ? savingLabel : submitLabel}</button>
   </form>;
 }

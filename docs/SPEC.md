@@ -1,62 +1,220 @@
-# FitMeal build plan
+# FitMeal product specification
+
+## Document status
+
+- Project stage: final feature-complete candidate
+- Last reviewed against source: 2026-08-26
+- Implementation status: complete for the scope below
+- Release status: local build/test verification available; first hosted deployment and production smoke test are still pending
+
+This document describes the current application, not an aspirational backlog. Historical implementation decisions are recorded in [AUDIT.md](AUDIT.md), and hosting instructions are in [DEPLOYMENT.md](DEPLOYMENT.md).
 
 ## Purpose
 
-FitMeal provides simple meal-planning, an AI meal assistant, and weight check-in tools. It is an educational planning aid, not medical advice.
+FitMeal helps users explore recipes, calculate an estimated nutrition target, follow a daily meal plan, record what they ate, and review weight trends. The assistant offers general meal and nutrition guidance.
+
+FitMeal is an educational planning aid, not a medical device or substitute for a doctor or registered dietitian. All recipe and target values are estimates.
+
+## Users and access
+
+| User state | Available behavior |
+| --- | --- |
+| Clerk not configured | Home and recipe content remain usable; planner, progress, and account screens explain that sign-in must be configured; authenticated APIs return `503` |
+| Signed out | Home and recipe cards are visible; planner/check-in forms can be tried but saving prompts for sign-in; account data and assistant are unavailable |
+| Signed in | Profile, daily plans, meal logging, history, progress, account summary, recipe modal, themes, and assistant are available |
+
+The frontend recipe cards prompt signed-out visitors to sign in before opening the details modal when Clerk is configured. The retained `/recipes/:recipeSlug` deep-link route itself is not currently protected; see [Known constraints](#known-constraints).
 
 ## Current scope
 
-1. Show a public nutrition-focused home page with a site-wide footer.
-2. Show recipes (meals, fruits, snacks, desserts, smoothies) for weight loss, maintenance, and weight gain, each with an estimated nutrition breakdown, photo, and tags. Clicking a recipe opens its full details (ingredients, preparation) in a modal, not a page navigation.
-3. Collect a profile (age, sex, height, weight, activity, goal) through a form on the Meal Planner page and save it to MongoDB, scoped to the signed-in Clerk account. The profile can be edited later from the same page.
-4. Generate one meal plan per calendar day per profile (in the user's own local day, not the server's). Opening the planner on a new day silently creates that day's plan; a "Refresh plan" button force-regenerates the current day. Each meal slot's dish is chosen deterministically from the date, the profile's goal, and the slot — from a pool of options, not a fixed set of four — so the same day always shows the same plan (stable across reloads) while different days spread across the pool instead of repeating. "Lose" and "maintain"/"gain" goals draw from disjoint dish pools, so the plan itself looks different for those two directions, not just differently portioned.
-5. Treat every Sunday as a cheat day: the generated plan carries `isCheatDay: true` and a free-choice placeholder for all four slots instead of a fixed menu, with its own banner in the UI and no confirm/swap controls (there's nothing to compare a free choice against).
-6. Let a user replace any (non-cheat-day) meal slot with a freely-typed meal. This is a plain, AI-free save — it records what they actually had and keeps the original suggested meal's title, photo, and recipe details so both can still be seen ("was X, now Y").
-7. Offer a per-meal "Did you have this, or something else?" confirmation, and a computed (non-AI) day-by-day history ("This week" / "Previous week") showing each day's meals and how many were changed from the suggestion — with a "Cheat day" badge instead of a stale 0 kcal reading for a past cheat day.
-8. Offer an AI assistant (FitMeal AI, powered by Gemini) on the Meal Planner page for general meal and nutrition questions. This is the only remaining AI-dependent feature.
-9. Record and display weight check-ins, scoped to the signed-in account.
-10. Compute a progress review (weight trend vs. goal direction, recent meal-swap fit) with a rule-based written summary — no AI involved, so it never depends on any external quota.
-11. Let signed-out visitors see and interact with the profile/check-in forms, but show a clear "please sign in" prompt instead of an error when they try to save or see results.
-12. Provide an Account page (signed-in only) showing identity (from Clerk), a quick plan/progress summary, and a site-wide theme toggle (six themes) saved per device. The signed-in header also shows the account's name, an "online" indicator, and a directly-clickable Log out button rather than hiding sign-out behind a menu.
+### Public experience
+
+1. Render a responsive, nutrition-focused home page with shared header, navigation, background treatment, and footer.
+2. Present 25 static recipes across meal, fruit, snack, dessert, and smoothie categories.
+3. Filter recipes by category and by lose, maintain, or gain goal.
+4. Show a photo, tags, preparation time, and estimated nutrition per serving.
+5. Open ingredients, steps, health context, and nutrition in a modal for an allowed recipe-card interaction.
+6. Preserve the recipe detail route for direct links and unknown-recipe handling.
+7. Provide accessible mobile navigation and page-level error recovery.
+
+### Authentication and ownership
+
+1. Use Clerk for frontend sign-in/sign-up and backend session validation.
+2. Require authentication for every profile, meal-plan, progress, and assistant endpoint.
+3. Store the Clerk user ID on profiles.
+4. Verify the owning profile before reading or mutating related meal plans or check-ins.
+5. Return `404`, rather than another user's data, when an authenticated user requests a resource they do not own.
+6. Show the signed-in identity, online indicator, Profile link, and direct Log out action in the header.
+
+### Profile and targets
+
+1. Collect name, age, sex, height, weight, activity level, and lose/maintain/gain goal.
+2. Validate the same allowed ranges and values on the backend.
+3. Create and later edit an account-scoped profile.
+4. Calculate calorie needs using Mifflin-St Jeor, an activity multiplier, and a goal adjustment.
+5. Derive protein from body weight and carbohydrates/fats from the calorie target.
+6. Recalculate a plan only when the user explicitly refreshes after editing a profile.
+
+### Daily meal plans
+
+1. Get or create one stored plan for a supplied local date in `YYYY-MM-DD` form.
+2. Create a new current-day plan automatically when the signed-in planner loads.
+3. Select one Breakfast, Lunch, Snack, and Dinner deterministically from date, goal, and slot.
+4. Use a leaner pool for lose and a heartier pool for maintain/gain so goal changes affect dishes as well as portions.
+5. Preserve the stored plan, confirmations, and replacements across reloads.
+6. Let **Refresh plan** replace the current dated plan intentionally.
+7. Mark Sundays with `isCheatDay: true` and render a free-choice experience without fixed menu controls or displayed meal totals.
+8. Keep a recent history (14 days by default, 60 maximum) grouped into this week and previous week.
+
+### Meal logging
+
+1. Let users confirm that they ate a suggested meal.
+2. Let users replace a non-cheat-day slot with a free-text description of 1–300 characters.
+3. Preserve the first suggestion's title, image, ingredients, and preparation steps across repeated replacements.
+4. Mark replacements as changed and show “original → replacement” in the plan/history UI.
+5. Keep the suggested slot calorie/protein values because no reliable nutrition calculation is performed for arbitrary text.
+6. Perform confirmation and replacement without an AI request.
+
+### Progress
+
+1. Record validated weight check-ins against an owned profile and show them chronologically.
+2. Compare the first and latest weights and calculate a weekly rate when at least two dated check-ins exist.
+3. Decide whether the direction is on track for lose, maintain, or gain using fixed rules.
+4. Include confirmed and changed meal counts from the latest plan.
+5. Generate a deterministic written review from those statistics without AI.
+6. Require two check-ins before presenting a directional verdict.
+
+### Assistant
+
+1. Offer FitMeal AI in the Meal Planner and through a floating launcher on every route for signed-in users.
+2. Accept a message of up to 1,000 characters and up to 20 prior chat entries.
+3. Use Groq for short, general meal, recipe, calorie, and macro guidance.
+4. Refuse diagnosis, treatment, or individualized medical guidance and direct those questions to a qualified professional.
+5. Bound backend and browser wait times so the interface cannot remain indefinitely on “Thinking…”.
+6. Return clearly labelled rule-based offline guidance when the key is absent, Groq fails, or quota is exhausted.
+7. Keep every non-chat feature independent of Groq.
+
+### Account and appearance
+
+1. Show Clerk identity plus today's plan and last-seven-days check-in summaries on `/account`.
+2. Offer Midnight Gold, Warm Light, Rose Pink, Ocean Blue, Forest Green, and Slate Gray themes.
+3. Store the selected theme in `localStorage` and apply it across routes.
+4. Use theme-backed Tailwind utilities for application colors, with the fixed-color phone mockup as the only documented design exception.
+5. Keep shared navigation and footer usable when routed page content throws.
 
 ## Architecture
 
 ```text
-React + Vite browser app
+React + Vite static frontend
         |
-        | /api requests
+        | Clerk bearer token + JSON over /api
         v
-Express API on port 4000  ----->  Gemini API (generativelanguage.googleapis.com) — assistant chat only
-        |
-        v
-MongoDB
+Express API  ───────────────> Clerk session verification
+    |   |
+    |   └───────────────────> Groq API (assistant chat only)
+    v
+MongoDB (profiles, plans, check-ins)
 ```
 
-During development, Vite proxies `/api` to the Express API. Production deployments must either serve both from one origin or configure `VITE_API_URL` with the public API URL.
+During local development, Vite proxies `/api` to `http://localhost:4000`. A separately hosted frontend uses `VITE_API_URL`, including the `/api` suffix.
 
-Only the AI assistant chat requires `GEMINI_API_KEY` in `backend/.env`. Without it, that one endpoint returns a clear 503 instead of failing silently; the rest of the app (including meal swaps and progress reviews, both rule-based) works normally regardless.
+## Data model
 
-## Functional requirements
+### Profile
 
-- `GET /api/health` returns `{ "ok": true }`.
-- Profiles, meal plans, check-ins, and assistant requests are validated by the backend.
-- Every route that reads or writes a profile, meal plan, or check-in requires a signed-in Clerk session and verifies the record actually belongs to that user (`findOwnedProfile`) — a request for someone else's ID gets a 404, not their data.
-- Planner and progress screens show a clear loading, empty, or error state, and a guest-friendly form-then-alert flow when signed out.
-- The frontend must not contain API keys or database credentials.
-- Clerk provides sign-in, sign-up, and session middleware. Phone number as a required sign-up field is controlled entirely in the Clerk dashboard (Configure → Email, Phone, Username), not in this codebase.
-- Every async Express route wraps its logic in `try/catch` and calls `next(error)` on failure — Express 4 does not forward rejected promises automatically, so this is required to avoid crashing the process on a bad request.
-- Styling is Tailwind CSS utility classes; colors come from theme utilities (`bg-page`, `text-ink`, `text-accent`, etc.) mapped onto CSS custom properties (`--bg-page`, `--text-primary`, `--accent`, ...), not hardcoded hex values, so the six-theme toggle can override them from one place. A few narrow exceptions (the homepage's phone-mockup graphic, two decorative dark panels) are deliberately left theme-independent since they represent a fixed device screenshot or an intentionally fixed dark background. The homepage and every other page also carry a subtle, theme-tinted background photo behind all content — tinted with each theme's own page color via `--bg-page-rgb` so it never competes with text.
-- An `ErrorBoundary` around each routed page's content shows a "Something went wrong — try again / go home" fallback instead of a blank screen if a page throws, while the header/nav/footer stay usable.
+- Clerk owner ID
+- Name
+- Age
+- Sex
+- Height in centimeters
+- Weight in kilograms
+- Activity level
+- Goal
+- Created/updated timestamps
 
-## Non-functional requirements
+### Meal plan
 
-- Use TypeScript throughout the application source.
-- Keep UI text and error messages understandable for end users.
-- Keep components focused and avoid premature abstractions.
-- `npm run build` must build frontend and backend successfully.
-- `npm test` (backend) must pass: unit tests for pure calculations and Supertest route tests covering per-user ownership scoping, run against an in-memory MongoDB — no real database, Clerk account, or AI quota needed to run the suite.
+- Profile reference
+- User-local date string
+- Daily calorie and macro targets
+- Four meal slots
+- Original/replacement metadata and confirmation state
+- Cheat-day flag
+- Created/updated timestamps
+
+### Check-in
+
+- Profile reference
+- Weight in kilograms
+- Optional note
+- Date and timestamps
+
+## API contract
+
+| Method | Path | Success |
+| --- | --- | --- |
+| `GET` | `/api/health` | `200 { "ok": true }` |
+| `GET` | `/api/profiles/latest` | `200` profile or `null` |
+| `POST` | `/api/profiles` | `201` created profile |
+| `PATCH` | `/api/profiles/:profileId` | `200` updated profile |
+| `POST` | `/api/meal-plans/generate/:profileId` | `200` existing or `201` created/replaced plan |
+| `GET` | `/api/meal-plans/latest/:profileId` | `200` plan or `null` |
+| `GET` | `/api/meal-plans/:profileId/history?days=14` | `200` plan array |
+| `POST` | `/api/meal-plans/:planId/meals/:time` | `200` updated plan |
+| `PATCH` | `/api/meal-plans/:planId/meals/:time/confirm` | `200` updated plan |
+| `GET` | `/api/progress/:profileId` | `200` check-in array |
+| `POST` | `/api/progress` | `201` created check-in |
+| `POST` | `/api/progress/:profileId/review` | `200` stats and summary |
+| `POST` | `/api/assistant/chat` | `200` live or labelled fallback reply |
+
+Protected endpoints return `401` for no session and `503` when backend Clerk configuration is absent. Validation failures are JSON errors, and ownership misses return `404`.
+
+## Quality requirements
+
+- Use TypeScript for application source and avoid `any`.
+- Keep network access in the shared frontend API client.
+- Validate request bodies on the backend.
+- Wrap async Express route bodies in `try/catch` and forward failures with `next(error)`.
+- Show understandable loading, empty, guest, and error states.
+- Do not expose secret keys or database credentials in frontend bundles or git.
+- `npm run build` must pass for both workspaces.
+- `npm test` must pass without a real MongoDB database, Clerk account, or Groq request.
+- Preserve responsive behavior and all six themes for frontend changes.
+
+## Release acceptance checklist
+
+- [x] Public home and recipe collection
+- [x] Responsive navigation and shared footer
+- [x] Clerk integration and resource ownership
+- [x] Profile creation/editing and target calculation
+- [x] Daily/goal-based plans and Sunday free-choice handling
+- [x] Meal confirmation/replacement and two-week history
+- [x] Weight check-ins and rule-based review
+- [x] Account summary and six themes
+- [x] Groq assistant with timeout and offline fallback
+- [x] Backend unit/integration tests
+- [x] Frontend and backend production build configuration
+- [x] Render Blueprint and deployment guide
+- [ ] First production deployment
+- [ ] Production Clerk/MongoDB/Groq configuration
+- [ ] Production end-to-end smoke test
 
 ## Known constraints
 
-- Gemini's free tier has a daily request quota; once exhausted, the assistant chat returns a friendly "usage limit" message until it resets rather than an error page. No other feature is affected.
-- Deployment is configured (`render.yaml`, `docs/DEPLOYMENT.md`) but not run from this repo — actually creating the hosting account and completing the first deploy is a manual step for whoever owns that account.
+- There is no automated frontend test runner; frontend verification relies on the strict production build and manual/browser checks.
+- Recipe-card interactions are sign-in-gated when Clerk is enabled, but the retained `/recipes/:recipeSlug` route does not enforce that gate. This is a presentation gate, not a security boundary.
+- CORS currently allows all origins. This is convenient for separate preview hosts but should be restricted to the production frontend origin for a hardened release.
+- Plan uniqueness is implemented with route-level get-or-create logic rather than a compound unique database index, so simultaneous first requests for the same profile/date could race.
+- Multiple profiles can be created for one Clerk user; the application uses the latest profile rather than enforcing one profile per account.
+- Groq availability and quota affect live assistant answers only; fallback guidance remains available.
+- Render free web services have cold starts after inactivity, and the application depends on an externally managed MongoDB database.
+- Completing the first deployment requires account-owner access to Render, MongoDB Atlas, Clerk, and optionally Groq.
+
+## Out of scope
+
+- Medical diagnosis or treatment advice
+- Clinical nutrition accuracy guarantees
+- Automatic nutrition estimation for arbitrary replacement meals
+- Shopping lists, payments, notifications, or social sharing
+- Admin dashboards or multi-role authorization
+- Offline-first data synchronization

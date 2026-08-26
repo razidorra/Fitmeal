@@ -1,5 +1,74 @@
 # FitMeal change protocol
 
+## 2026-08-26 — Professional visual-system redesign
+
+### Implemented
+
+- Refined the existing premium editorial direction into a consistent production UI: a sticky glass header, compact active navigation, improved typography scale, rounded controls/surfaces, theme-aware shadows, visible focus states, polished disabled states, and a calmer layered page background.
+- Rebuilt the homepage hierarchy and copy around real product value. Removed fake avatar initials and the speculative mobile-app promotion, replacing them with implemented capabilities, concrete product statistics, and a flexible-planning section.
+- Redesigned the recipe experience with a structured filter panel, accessible pressed states, pill controls, richer card hierarchy, image overlays, descriptions, and consistent responsive cards.
+- Polished profile forms, meal-plan cards, progress/account panels, history rows, recipe/sign-in modals, and both assistant surfaces.
+- Replaced placeholder social links with a useful, accessible product footer and corrected stale FAQ navigation copy.
+- Removed the old fixed-color nutrition/mobile panels so all application surfaces now follow the six themes; only the illustrative phone mockup retains fixed device-screen colors.
+
+### Verification
+
+- Reviewed before/after screenshots of Home and Recipes at 1440px and 500px viewports.
+- `npm run build` succeeds for both workspaces after the redesign.
+- `npm test` passes all 30 backend tests.
+
+## 2026-08-26 — Final documentation and deployment handoff
+
+### Implemented
+
+- Reworked the root README into an end-stage project handoff covering the complete feature set, architecture, local setup, environment variables, authentication behavior, tests, API routes, and remaining production steps.
+- Converted `docs/SPEC.md` from an evolving build plan into an implementation-matched product specification with access rules, acceptance status, API contracts, known constraints, and an explicit deployment-pending release state.
+- Expanded `docs/DEPLOYMENT.md` with preflight checks, service-by-service variables, MongoDB and Clerk setup, production smoke tests, operations notes, and hardening tasks.
+- Updated `render.yaml` to Render's current Blueprint structure: the static frontend now lives in the top-level `services` list as `type: web` with `runtime: static`.
+- Corrected the recipe-image README from eight to nine local assets and clarified local versus deployed image updates.
+- Documented remaining limitations instead of presenting them as completed security controls: the public recipe deep-link route, permissive CORS, route-level plan uniqueness, multiple profiles per account, missing frontend automation, and the pending first production deployment.
+
+### Verification
+
+- `npm run build` succeeds for both workspaces.
+- `npm test` passes all 30 backend tests across 4 test files.
+- `git diff --check` reports no whitespace errors, and the updated Blueprint/documentation were reviewed together for matching service names, commands, environment variables, routes, and release status.
+
+## 2026-08-26 — Switch the AI assistant from Gemini to Groq
+
+### Implemented
+
+- Replaced `backend/src/shared/gemini.ts` with `backend/src/shared/groq.ts` (`askGroq`), calling Groq's OpenAI-compatible `https://api.groq.com/openai/v1/chat/completions` endpoint (model `openai/gpt-oss-20b`) instead of Google's Gemini API. Same shape as before: automatic retry on transient 503s, a friendly message on 429/other failures, and a `json: true` option for JSON-only replies.
+- Renamed the env vars to `GROQ_API_KEY` / `GROQ_MODEL` in `backend/src/config/env.ts`, `backend/.env.example`, and `render.yaml`; updated the assistant route and docs (`README.md`, `docs/SPEC.md`, `docs/DEPLOYMENT.md`, `AGENTS.md`) accordingly.
+- First tried xAI's Grok API (an easy mix-up with "Groq"), but confirmed via the user's own `Abdulkhaliq009/Portfolio` repo — which already runs a Groq-backed chat endpoint — that Groq was the intended provider; it also keeps a genuine free tier, unlike Grok.
+
+### Verification
+
+- `npm run build` succeeds for the backend workspace.
+
+## 2026-08-26 — Final-project reliability fixes
+
+### Implemented
+
+- Added `isCheatDay` to the Mongoose meal-plan schema so the flag returned by `buildPlan()` survives database writes and the dedicated current-day/history UI is shown after loading a saved Sunday plan.
+- Added an accessible mobile navigation toggle. The primary routes are no longer unreachable when the desktop navigation is hidden below 720px, and selecting a destination closes the mobile menu.
+- Replaced the progress review's obsolete AI-era `verdict` counts with values the current rule-based flow actually stores: meals logged, confirmed as planned, and changed. The written summary and frontend statistic now use those real values without inventing nutrition ratings for free-text meals.
+- Added route-level regression coverage for the persisted cheat-day flag and the confirmed/changed meal counts. The backend suite now contains 27 passing tests.
+
+### Verification
+
+- `npm run build` succeeds for both workspaces.
+- `npm test` passes all 27 backend tests.
+
+## 2026-08-26 — Site-wide AI assistant
+
+### Implemented
+
+- Added a compact floating FitMeal AI launcher for signed-in users on every route. It opens the existing Gemini-backed assistant in a responsive, closable panel and preserves the established chat behavior, history, loading state, and error messages.
+- Kept the full assistant panel on the Meal Planner page for users who prefer the original in-page layout.
+- Added backend and browser timeouts so an unreachable Gemini/API connection can no longer leave the chat on "Thinking…" indefinitely; users now receive a clear retry message.
+- Added a tested local fallback for common meal and nutrition questions. Gemini remains the primary assistant, but an unreachable service, missing key, or exhausted quota now produces clearly labelled basic offline guidance and always completes the chat request.
+
 ## 2026-08-24 — Daily meal variety, goal-based menus, and a weekly cheat day
 
 ### Implemented

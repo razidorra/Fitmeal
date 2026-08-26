@@ -25,8 +25,8 @@ function summarizeDay(plan: MealPlan) {
 function DayRow({ plan, isExpanded, onToggle }: { plan: MealPlan; isExpanded: boolean; onToggle: () => void }) {
   const summary = summarizeDay(plan);
 
-  return <div className="bg-surface border border-line mb-2">
-    <button type="button" className="grid grid-cols-[1.2fr_auto_auto_auto] max-[720px]:grid-cols-2 gap-4 max-[720px]:gap-y-1.5 w-full py-3.5 px-4.5 bg-transparent border-0 text-ink text-left cursor-pointer items-center font-sans text-sm hover:bg-input" onClick={onToggle}>
+  return <div className="overflow-hidden rounded-xl bg-surface border border-line mb-2">
+    <button type="button" className="grid grid-cols-[1.2fr_auto_auto_auto] max-[720px]:grid-cols-2 gap-4 max-[720px]:gap-y-1.5 w-full rounded-none py-3.5 px-4.5 bg-transparent border-0 text-ink text-left cursor-pointer items-center font-sans text-sm hover:bg-input hover:translate-y-0" onClick={onToggle}>
       <span className="font-semibold">{formatDisplayDate(plan.date)}</span>
       <span className={`text-xs py-1 px-2.5 border justify-self-start rounded-[20px] ${verdictBadgeClass[summary.tone]}`}>{summary.label}</span>
       <span>{plan.isCheatDay ? '—' : `${sum(plan, 'calories')} kcal`}</span>

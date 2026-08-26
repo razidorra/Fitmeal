@@ -6,6 +6,7 @@ import { isClerkConfigured } from '../../shared/clerk';
 import { getLocalDateString } from '../../shared/date';
 import { getStoredTheme, setTheme, type Theme } from '../../shared/theme';
 import type { Checkin, MealPlan, Profile } from '../../shared/types';
+import { PageLoading } from '../../shared/components/PageLoading';
 
 export function AccountPage() {
   if (!isClerkConfigured) return <section className="text-center py-22.5"><h1 className="text-[54px]">Sign-in is not configured.</h1><p>Set <code>VITE_CLERK_PUBLISHABLE_KEY</code> to enable accounts.</p></section>;
@@ -79,7 +80,7 @@ function AccountContent() {
     setThemeState(next);
   }
 
-  if (!authLoaded || isLoading) return <section className="text-center py-22.5"><p>Loading your account…</p></section>;
+  if (!authLoaded || isLoading) return <PageLoading label="Loading your account" />;
 
   if (!isSignedIn) return <section className="text-center py-22.5">
     <h1 className="text-[54px]">Sign in to see your account.</h1>
@@ -97,10 +98,10 @@ function AccountContent() {
 
   return <>
     <section className="mb-9.5">
-      <span className="uppercase tracking-[.04em] font-sans font-semibold text-[13px] text-accent bg-badge px-3 py-1.75 inline-block">Your account</span>
+      <span className="inline-flex rounded-full border border-line bg-badge px-3.5 py-2 font-sans text-[12px] font-semibold uppercase tracking-[.1em] text-accent">Your account</span>
       <h1>Everything in one place.</h1>
     </section>
-    <div className="flex items-center gap-5 py-6.5 px-7 border border-line bg-surface-alt mb-5.5 max-[720px]:flex-col max-[720px]:items-start max-[720px]:text-left">
+    <div className="flex items-center gap-5 rounded-2xl py-6.5 px-7 border border-line bg-surface-alt mb-5.5 shadow-[0_18px_50px_rgba(0,0,0,.1)] max-[720px]:flex-col max-[720px]:items-start max-[720px]:text-left">
       <img className="w-14 h-14 rounded-full object-cover bg-hover" src={user?.imageUrl} alt="" />
       <div>
         <span className="uppercase tracking-wider font-sans font-semibold text-[11px] text-accent">Your FitMeal account</span>
@@ -110,7 +111,7 @@ function AccountContent() {
     </div>
 
     <div className="grid grid-cols-2 max-[720px]:grid-cols-1 gap-5 mb-5">
-      <div className="py-6.5 px-7 border border-line bg-surface">
+      <div className="rounded-2xl py-6.5 px-7 border border-line bg-surface shadow-[0_18px_50px_rgba(0,0,0,.1)]">
         <div className="flex justify-between items-center">
           <span className="uppercase tracking-wider font-sans font-semibold text-[11px] text-accent">Today</span>
           <Link to="/planner" className={panelLinkClass}>Manage plan →</Link>
@@ -129,7 +130,7 @@ function AccountContent() {
             </div>}
       </div>
 
-      <div className="py-6.5 px-7 border border-line bg-surface">
+      <div className="rounded-2xl py-6.5 px-7 border border-line bg-surface shadow-[0_18px_50px_rgba(0,0,0,.1)]">
         <div className="flex justify-between items-center">
           <span className="uppercase tracking-wider font-sans font-semibold text-[11px] text-accent">Last 7 days</span>
           <Link to="/progress" className={panelLinkClass}>View details →</Link>
@@ -145,12 +146,12 @@ function AccountContent() {
       </div>
     </div>
 
-    <div className="py-6.5 px-7 border border-line bg-surface">
+    <div className="rounded-2xl py-6.5 px-7 border border-line bg-surface shadow-[0_18px_50px_rgba(0,0,0,.1)]">
       <span className="uppercase tracking-wider font-sans font-semibold text-[11px] text-accent">Appearance</span>
       <h2 className="font-display font-semibold text-[22px] mt-1.5 mb-4">Website theme</h2>
       <p className="text-ink-soft mb-4.5">Your choice is saved on this device and applied across FitMeal.</p>
       <div className="grid grid-cols-3 max-[720px]:grid-cols-1 gap-3.5">
-        {themeOptions.map((option) => <button key={option.value} type="button" className={`flex items-center gap-3.5 py-4 px-5 border bg-surface-alt text-ink font-semibold ${theme === option.value ? 'border-accent' : 'border-line-strong'}`} onClick={() => handleThemeChange(option.value)}>
+        {themeOptions.map((option) => <button key={option.value} type="button" className={`flex items-center gap-3.5 rounded-xl py-4 px-5 border bg-surface-alt text-ink font-semibold hover:bg-hover hover:border-line-strong ${theme === option.value ? 'border-accent shadow-[0_0_0_2px_var(--bg-badge)]' : 'border-line-strong'}`} onClick={() => handleThemeChange(option.value)}>
           <span aria-hidden="true" className="relative w-8.5 h-5 shrink-0">
             <span aria-hidden="true" className="absolute top-0 left-0 w-5 h-5 rounded-full border-2 border-line-strong" style={{ background: option.swatchBg }} />
             <span aria-hidden="true" className="absolute top-0 left-3.5 w-5 h-5 rounded-full border-2 border-line-strong" style={{ background: option.swatchAccent }} />

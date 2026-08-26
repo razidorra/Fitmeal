@@ -6,8 +6,8 @@ FitMeal is a full-stack meal-planning web application.
 
 - Frontend: React 18, Vite 6, TypeScript, TanStack Router, Tailwind CSS 4
 - Backend: Node.js, Express, TypeScript, Mongoose
-- Auth: Clerk (`@clerk/react` frontend, `@clerk/express` backend) — optional; the app degrades to a guest-only mode when its keys aren't set
-- AI: Google Gemini, used only by the assistant chat — meal swaps and progress reviews are plain, rule-based, and never call it
+- Auth: Clerk (`@clerk/react` frontend, `@clerk/express` backend) — public content works without keys, but protected screens show setup guidance and protected APIs return 503
+- AI: Groq, used only by the assistant chat — meal swaps and progress reviews are plain, rule-based, and never call it
 - Database: MongoDB
 - Tests: Vitest + Supertest + `mongodb-memory-server` (backend only)
 - Package manager: npm workspaces
@@ -33,7 +33,7 @@ frontend/src/styles.css        # Tailwind import, font/color theme tokens, the s
 frontend/public/images/        # Static assets served as-is (recipe photos, homepage hero/background photo)
 backend/src/features/          # API feature routes, models, and services, one folder per resource
 backend/src/config/            # Environment configuration
-backend/src/shared/            # Database connection, auth/ownership helpers, Gemini client
+backend/src/shared/            # Database connection, auth/ownership helpers, Groq client
 backend/src/test/              # Shared test helpers (in-memory MongoDB lifecycle)
 docs/                          # SPEC.md (requirements), AUDIT.md (dated change log), DEPLOYMENT.md
 ```
@@ -52,7 +52,7 @@ docs/                          # SPEC.md (requirements), AUDIT.md (dated change 
 ## Styling rules
 
 - Styling is Tailwind CSS utility classes in JSX, not separate `.css` files per component — there is no per-feature stylesheet left in the frontend beyond `styles.css` itself.
-- Colors must come from the theme utilities (`bg-page`, `text-ink`, `text-ink-soft`, `text-accent`, `border-line`, `bg-surface`, `bg-surface-alt`, ...), never hardcoded hex, so all six themes stay correct automatically. These map onto the CSS custom properties in `styles.css` via `@theme inline`, which in turn come from the six `[data-theme]` blocks — add a new color token in both places if you need one. A couple of narrow, deliberate exceptions (the homepage phone mockup, the "nutrition basics"/"mobile app" panels) use literal hex values because they're meant to look the same in every theme.
+- Colors must come from the theme utilities (`bg-page`, `text-ink`, `text-ink-soft`, `text-accent`, `border-line`, `bg-surface`, `bg-surface-alt`, ...), never hardcoded hex, so all six themes stay correct automatically. These map onto the CSS custom properties in `styles.css` via `@theme inline`, which in turn come from the six `[data-theme]` blocks — add a new color token in both places if you need one. The homepage phone mockup is the one narrow, deliberate exception: it uses literal device-screen colors because it is meant to look the same in every theme.
 - Prefer Tailwind's fractional spacing scale (e.g. `gap-7.5` for 30px, `p-4.25` for 17px) over arbitrary `[…]` brackets whenever a pixel value divides cleanly by 4 — the IDE flags the arbitrary form with a canonical-class suggestion when one exists; apply it. Use arbitrary values for anything else (odd pixel values, `clamp()`, multi-value `grid-template-columns`, etc.).
 - Never combine a margin/padding shorthand utility with a more specific same-side override on the same element (e.g. `my-6 mb-8` or `p-5 px-4`) — Tailwind's generated utilities don't reliably cascade by class order, so the two can silently fight over which one wins. Use fully explicit single-side utilities instead (`mt-6 mb-8`, `py-5 px-4`).
 - Element-level defaults that apply everywhere with no per-page override (`button`, `h1`–`h3`, `input`/`select`) live once in `styles.css`'s `@layer base`, via `@apply`. Everything page- or component-specific is inline Tailwind classes in the component itself, not a shared class extracted "just in case."
@@ -75,7 +75,7 @@ docs/                          # SPEC.md (requirements), AUDIT.md (dated change 
 
 ## Tests
 
-- `npm run test -w backend` (or `npm test` from the root) runs the backend suite: pure unit tests for calculations (calorie/macro formula, meal-plan variety/goal-selection, cheat-day detection) and Supertest route tests against the exported `app`, using `mongodb-memory-server` for a real ephemeral database and a mocked `@clerk/express` to simulate different signed-in users.
+- `npm run test -w backend` (or `npm test` from the root) runs the backend suite: pure unit tests for calculations and assistant fallback guidance (calorie/macro formula, meal-plan variety/goal-selection, cheat-day detection), plus Supertest route tests against the exported `app`, using `mongodb-memory-server` for a real ephemeral database and a mocked `@clerk/express` to simulate different signed-in users.
 - There is no frontend test runner. Frontend changes are verified with a full `npm run build` (both `tsc -b`, which is stricter than a bare `tsc --noEmit` and has caught real bugs the latter missed, and the Vite build) plus manual/headless-browser checks — see `docs/AUDIT.md` for the pattern used throughout (temporary mock routes/data for states that need a real signed-in session, deleted once verified).
 
 ## Before handoff

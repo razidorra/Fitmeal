@@ -31,7 +31,7 @@ export const api = {
   getPlanHistory: (token: string | null, profileId: string, days = 14) => request<MealPlan[]>(token, `/meal-plans/${profileId}/history?days=${days}`),
   getCheckins: (token: string | null, profileId: string) => request<Checkin[]>(token, `/progress/${profileId}`),
   addCheckin: (token: string | null, data: { profileId: string; weightKg: number; note?: string }) => request<Checkin>(token, '/progress', { method: 'POST', body: JSON.stringify(data) }),
-  askAssistant: (token: string | null, message: string, history: ChatMessage[]) => request<{ reply: string }>(token, '/assistant/chat', { method: 'POST', body: JSON.stringify({ message, history }) }),
+  askAssistant: (token: string | null, message: string, history: ChatMessage[]) => request<{ reply: string; isFallback?: boolean; notice?: string }>(token, '/assistant/chat', { method: 'POST', body: JSON.stringify({ message, history }), signal: AbortSignal.timeout(70_000) }),
   customizeMeal: (token: string | null, planId: string, time: string, description: string) => request<MealPlan>(token, `/meal-plans/${planId}/meals/${encodeURIComponent(time)}`, { method: 'POST', body: JSON.stringify({ description }) }),
   confirmMeal: (token: string | null, planId: string, time: string) => request<MealPlan>(token, `/meal-plans/${planId}/meals/${encodeURIComponent(time)}/confirm`, { method: 'PATCH' }),
   getReview: (token: string | null, profileId: string) => request<ProgressReview>(token, `/progress/${profileId}/review`, { method: 'POST' }),

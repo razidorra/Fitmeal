@@ -20,12 +20,12 @@ export function SignInPromptModal({ onClose }: { onClose: () => void }) {
     };
   }, [onClose]);
 
-  return <div className="fixed inset-0 bg-[rgba(6,6,5,.82)] flex items-center justify-center p-8 z-100 animate-[recipe-modal-fade_180ms_ease]" onClick={onClose}>
-    <div className="relative bg-surface border border-line max-w-115 w-full py-11 px-10 text-center" role="dialog" aria-modal="true" aria-label="Sign in required" onClick={(event) => event.stopPropagation()}>
+  return <div className="fixed inset-0 bg-[rgba(6,6,5,.82)] backdrop-blur-sm flex items-center justify-center p-8 max-[560px]:p-4 z-100 animate-[recipe-modal-fade_180ms_ease]" onClick={onClose}>
+    <div className="relative bg-surface border border-line rounded-3xl max-w-115 w-full py-11 px-10 max-[560px]:px-6 text-center shadow-[0_30px_90px_rgba(0,0,0,.5)]" role="dialog" aria-modal="true" aria-label="Sign in required" onClick={(event) => event.stopPropagation()}>
       <button type="button" onClick={onClose} aria-label="Close" className="absolute top-5 right-5 w-9.5 h-9.5 rounded-full bg-surface-alt border border-line-strong text-ink text-xl leading-none grid place-items-center p-0 hover:bg-hover">×</button>
       <h2 className="font-display font-semibold text-2xl mt-0 mb-3.5">Sign in to see the full recipe.</h2>
       <p className="text-ink-soft leading-[1.55] mb-6.5">Create a free account to view ingredients, preparation steps, and nutrition details.</p>
-      <div className="flex items-center justify-center gap-6 m-0">
+      <div className="flex items-center justify-center gap-3 m-0 max-[420px]:flex-col max-[420px]:items-stretch">
         <SignInButton><button className="primary">Log in</button></SignInButton>
         <SignUpButton><button className="primary">Sign up</button></SignUpButton>
       </div>

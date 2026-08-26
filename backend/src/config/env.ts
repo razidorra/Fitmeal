@@ -13,6 +13,6 @@ export const env = {
   mongoUri: process.env.MONGODB_URI ?? '',
   clerkPublishableKey: process.env.CLERK_PUBLISHABLE_KEY,
   clerkSecretKey: process.env.CLERK_SECRET_KEY,
-  geminiApiKey: process.env.GEMINI_API_KEY ?? '',
-  geminiModel: process.env.GEMINI_MODEL ?? 'gemini-flash-latest',
+  groqApiKey: process.env.GROQ_API_KEY ?? '',
+  groqModel: process.env.GROQ_MODEL ?? 'openai/gpt-oss-20b',
 };

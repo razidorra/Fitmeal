@@ -95,3 +95,46 @@ describe('PATCH /api/profiles/:profileId', () => {
     expect(res.body.name).toBe('Alexandra');
   });
 });
+
+describe('POST /api/meal-plans/generate/:profileId', () => {
+  it('persists and returns the Sunday cheat-day status', async () => {
+    authState.userId = 'user_a';
+    const createdProfile = await request(app).post('/api/profiles').send(validProfile);
+
+    const generated = await request(app)
+      .post(`/api/meal-plans/generate/${createdProfile.body._id}`)
+      .send({ date: '2026-08-23' });
+
+    expect(generated.status).toBe(201);
+    expect(generated.body.isCheatDay).toBe(true);
+
+    const latest = await request(app).get(`/api/meal-plans/latest/${createdProfile.body._id}`);
+    expect(latest.status).toBe(200);
+    expect(latest.body.isCheatDay).toBe(true);
+  });
+
+  it('feeds confirmed and changed meals into the progress review', async () => {
+    authState.userId = 'user_a';
+    const createdProfile = await request(app).post('/api/profiles').send(validProfile);
+    const generated = await request(app)
+      .post(`/api/meal-plans/generate/${createdProfile.body._id}`)
+      .send({ date: '2026-08-24' });
+
+    await request(app)
+      .patch(`/api/meal-plans/${generated.body._id}/meals/Breakfast/confirm`)
+      .expect(200);
+    await request(app)
+      .post(`/api/meal-plans/${generated.body._id}/meals/Lunch`)
+      .send({ description: 'Vegetable soup and bread' })
+      .expect(200);
+
+    const review = await request(app).post(`/api/progress/${createdProfile.body._id}/review`);
+
+    expect(review.status).toBe(200);
+    expect(review.body.stats).toMatchObject({
+      loggedMealCount: 2,
+      confirmedMealCount: 1,
+      changedMealCount: 1,
+    });
+  });
+});

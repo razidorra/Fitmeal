@@ -11,6 +11,7 @@
 /* Referenced by the recipe/sign-in modals via an arbitrary `animate-[recipe-modal-fade_180ms_ease]`
    utility — keyframes aren't utility material, so this stays plain CSS. */
 @keyframes recipe-modal-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes mobile-menu-enter { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
 
 /* Color tokens, mapped onto the existing --bg-..., --text-..., --accent (etc) custom properties
    below instead of holding literal values themselves. `inline` is required for that: it makes each
@@ -84,24 +85,33 @@
    rather than being repeated as a class list on every single element across the app. */
 @layer base {
   * { box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
+  html { scroll-behavior: smooth; min-width: 320px; }
   :root { @apply font-sans text-ink bg-page; }
   /* Whole-site background photo, tinted with the active theme's own page color so it reads as a
      subtle texture rather than competing with text — every card/panel already has its own opaque
      background, so this only ever shows through in the gaps between them. Fixed attachment keeps
      it sized to the viewport instead of stretching across the (very long) page content. */
   body {
-    @apply m-0 bg-page;
-    background-image: linear-gradient(rgba(var(--bg-page-rgb), .9), rgba(var(--bg-page-rgb), .9)), url('/images/backG.jpg');
+    @apply m-0 min-h-screen bg-page text-ink antialiased;
+    background-image:
+      radial-gradient(circle at 15% 5%, rgba(var(--bg-page-rgb), .74), rgba(var(--bg-page-rgb), .96) 42%),
+      linear-gradient(rgba(var(--bg-page-rgb), .92), rgba(var(--bg-page-rgb), .96)),
+      url('/images/backG.jpg');
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
   }
-  h1 { @apply font-display font-semibold text-[clamp(54px,6.4vw,92px)] leading-[1.04] tracking-[-0.055em] my-5.5; }
+  ::selection { @apply bg-accent text-on-accent; }
+  a, button, input, select { @apply transition-[color,background-color,border-color,box-shadow,transform] duration-200; }
+  a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible { @apply outline-2 outline-offset-3 outline-accent; }
+  h1 { @apply font-display font-semibold text-[clamp(44px,5.6vw,78px)] leading-[1.02] tracking-[-0.05em] mt-5 mb-6; }
   h1 em { @apply text-accent italic; }
-  h2 { @apply font-display font-semibold text-[31px] mt-2 mb-5.5; }
+  h2 { @apply font-display font-semibold text-[30px] leading-[1.15] mt-2 mb-5; }
   h3 { @apply mt-1 mb-1.5; }
-  button, .primary { @apply border-0 rounded-none bg-accent text-on-accent px-7 py-4 no-underline font-sans font-semibold text-base cursor-pointer inline-block; }
-  button:hover, .primary:hover { @apply bg-accent-hover; }
-  input, select { @apply w-full font-sans text-base p-[11px] border border-line-strong bg-input rounded-none text-ink; }
+  p { text-wrap: pretty; }
+  button, .primary { @apply border border-accent rounded-xl bg-accent text-on-accent px-6 py-3.5 no-underline font-sans font-semibold text-[15px] cursor-pointer inline-flex items-center justify-center; }
+  button:hover, .primary:hover { @apply bg-accent-hover border-accent-hover -translate-y-px; }
+  button:disabled { @apply cursor-not-allowed opacity-60 translate-y-0; }
+  input, select { @apply w-full font-sans text-base py-3 px-3.5 border border-line-strong bg-input rounded-xl text-ink outline-none; }
+  input:focus, select:focus { @apply border-accent shadow-[0_0_0_3px_var(--bg-badge)]; }
 }

@@ -1,6 +1,6 @@
 # Recipe photos (local files)
 
-Most recipes use hotlinked Unsplash photos directly in `recipes.ts`. These 8 recipes use
+Most recipes use hotlinked Unsplash photos directly in `recipes.ts`. These 9 recipes use
 local files instead (your own photos, originally saved in the project's `pics/` folder):
 
 - `grilled-chicken-quinoa-bowl.jpg`
@@ -13,6 +13,6 @@ local files instead (your own photos, originally saved in the project's `pics/` 
 - `berry-yogurt-parfait.jpg`
 - `date-pistachio-parfait.jpg` (resized/compressed from the original 2.3 MB PNG you saved)
 
-Vite serves anything in `public/` as-is at `/images/recipes/<filename>` — no rebuild
-needed if you swap one out. Until a file exists, the card/modal shows a plain placeholder
-background instead of a broken image icon.
+Vite serves anything in `public/` as-is at `/images/recipes/<filename>`. A changed image is
+available immediately in local development; a deployed static site must be rebuilt. If a file
+is missing, the card/modal hides the broken image and leaves its placeholder background visible.

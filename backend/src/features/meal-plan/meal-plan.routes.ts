@@ -76,7 +76,7 @@ mealPlanRouter.get('/:profileId/history', async (req, res, next) => {
   }
 });
 
-// Confirms "I had the suggested meal as planned" for one slot — no Gemini call needed, it's free and instant.
+// Confirms "I had the suggested meal as planned" for one slot — no Groq call needed, it's free and instant.
 mealPlanRouter.patch('/:planId/meals/:time/confirm', async (req, res, next) => {
   try {
     const userId = requireUserId(req, res);

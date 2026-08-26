@@ -1,7 +1,8 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { askGemini, GeminiError } from '../../shared/gemini.js';
+import { askGroq, GroqError } from '../../shared/groq.js';
 import { requireUserId } from '../../shared/auth.js';
+import { getFallbackAssistantReply } from './assistant.service.js';
 
 const chatSchema = z.object({
   message: z.string().min(1).max(1000),
@@ -21,17 +22,21 @@ assistantRouter.post('/chat', async (req, res, next) => {
 
     const { message, history } = chatSchema.parse(req.body);
 
-    // Gemini uses "model" instead of "assistant" for the AI's turns.
-    const contents = [
-      ...(history ?? []).map((entry) => ({ role: entry.role === 'assistant' ? ('model' as const) : ('user' as const), parts: [{ text: entry.content }] })),
-      { role: 'user' as const, parts: [{ text: message }] },
+    const messages = [
+      ...(history ?? []).map((entry) => ({ role: entry.role, content: entry.content })),
+      { role: 'user' as const, content: message },
     ];
 
-    const reply = await askGemini(systemPrompt, contents);
+    const reply = await askGroq(systemPrompt, messages);
     res.json({ reply: reply || "Sorry, I couldn't come up with a reply just now." });
   } catch (error) {
-    if (error instanceof GeminiError) {
-      res.status(error.status).json({ message: error.message });
+    if (error instanceof GroqError) {
+      const { message } = chatSchema.pick({ message: true }).parse(req.body);
+      res.json({
+        reply: getFallbackAssistantReply(message),
+        isFallback: true,
+        notice: 'Groq is unavailable right now, so this is FitMeal basic offline guidance.',
+      });
       return;
     }
     next(error);

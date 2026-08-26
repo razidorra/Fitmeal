@@ -8,6 +8,7 @@ const mealPlanSchema = new Schema({
   // by a DB constraint, so those old undated rows never collide with anything.
   targets: Object,
   meals: Array,
+  isCheatDay: { type: Boolean, required: true, default: false },
 }, { timestamps: true });
 
 export const MealPlan = model('MealPlan', mealPlanSchema);

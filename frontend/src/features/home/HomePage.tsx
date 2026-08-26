@@ -38,9 +38,9 @@ function PhonePreview() {
 }
 
 function FaqItem({ question, answer, isOpen, onOpen }: { question: string; answer: string; isOpen: boolean; onOpen: () => void }) {
-  return <article className="border border-line bg-surface">
-    <button type="button" aria-expanded={isOpen} onClick={onOpen} className="w-full p-5.5 border-0 bg-transparent text-ink text-left cursor-pointer font-sans font-semibold text-[17px] flex items-center gap-3.25">
-      <span aria-hidden="true" className={`text-xs text-accent transition-transform duration-200 ${isOpen ? 'rotate-90' : ''}`}>▶</span>
+  return <article className="overflow-hidden rounded-2xl border border-line bg-surface">
+    <button type="button" aria-expanded={isOpen} onClick={onOpen} className="w-full rounded-none p-5.5 border-0 bg-transparent text-ink text-left cursor-pointer font-sans font-semibold text-[17px] flex items-center gap-3.25 hover:bg-surface-alt hover:translate-y-0">
+      <span aria-hidden="true" className={`grid h-7 w-7 shrink-0 place-items-center rounded-full bg-badge text-xs text-accent transition-transform duration-200 ${isOpen ? 'rotate-90' : ''}`}>›</span>
       {question}
     </button>
     {isOpen && <p className="pr-5.5 pb-5.5 pl-11.75 m-0 text-ink-muted leading-[1.55]">{answer}</p>}
@@ -52,46 +52,46 @@ export function HomePage() {
   const [showAllQuestions, setShowAllQuestions] = useState(false);
   const goals = [['↓', 'Lose weight', 'A modest calorie deficit helps you make steady progress while prioritising protein, fibre and satisfying meals.'], ['=', 'Maintain weight', 'Keep your energy stable with balanced meals that support your routine, training and everyday life.'], ['↑', 'Gain weight', 'Use a gentle calorie surplus and protein-rich meals to support healthy muscle and weight gain.']];
   const steps = [['01', 'Tell us your goal', 'Add your height, weight, activity level and whether you want to lose, maintain or gain weight.'], ['02', 'Get your meal targets', 'FitMeal calculates a daily calorie and macro starting point, then creates a balanced meal outline.'], ['03', 'Check in and adjust', 'Log your weight over time, notice the trend, and refresh your plan when your needs change.']];
-  const faqs = [['How does FitMeal create my calorie target?', 'FitMeal uses your age, sex, height, weight, activity level and chosen goal to estimate daily energy needs. It then applies a modest adjustment for losing or gaining weight.'], ['Can FitMeal help me lose weight or gain weight?', 'Yes. Choose lose, maintain or gain when you set up your profile. FitMeal adjusts your daily calorie target and protein goal to suit that direction.'], ['What happens after I save my profile?', 'You can generate a daily meal plan with calorie and protein estimates, ask FitMeal AI general meal-planning questions, and log weight check-ins on the Progress page.'], ['Are calorie targets exact?', 'They are a practical starting estimate, not an exact prescription. Your needs can vary, so use your energy, hunger and progress over several weeks to guide adjustments.'], ['How often should I log my weight?', 'Many people find one or two check-ins per week useful. Focus on the longer trend instead of reacting to normal daily changes from hydration, food and routine.'], ['Can I update my goal or body details later?', 'Yes. Return to the profile section on the home page, update your details, and save again. Generate a fresh meal plan afterwards so its targets use your newest information.'], ['Can one meal be called healthy or unhealthy?', 'Usually, no. A balanced eating pattern matters more than one individual meal. FitMeal supports flexible, nourishing habits without labelling foods as good or bad.'], ['Is FitMeal AI a doctor or dietitian?', 'No. The assistant provides general planning and nutrition guidance only. It does not diagnose, prescribe or replace advice from a doctor or registered dietitian.'], ['Where does the nutrition data come from?', 'Your starting targets are calculated from established energy-estimation formulas. Meal information is designed for planning and education; check product labels for exact packaged-food values.']];
+  const faqs = [['How does FitMeal create my calorie target?', 'FitMeal uses your age, sex, height, weight, activity level and chosen goal to estimate daily energy needs. It then applies a modest adjustment for losing or gaining weight.'], ['Can FitMeal help me lose weight or gain weight?', 'Yes. Choose lose, maintain or gain when you set up your profile. FitMeal adjusts your daily calorie target and protein goal to suit that direction.'], ['What happens after I save my profile?', 'You can generate a daily meal plan with calorie and protein estimates, ask FitMeal AI general meal-planning questions, and log weight check-ins on the Progress page.'], ['Are calorie targets exact?', 'They are a practical starting estimate, not an exact prescription. Your needs can vary, so use your energy, hunger and progress over several weeks to guide adjustments.'], ['How often should I log my weight?', 'Many people find one or two check-ins per week useful. Focus on the longer trend instead of reacting to normal daily changes from hydration, food and routine.'], ['Can I update my goal or body details later?', 'Yes. Open the Meal Planner, choose Edit profile, update your details, and save. Refresh the current plan afterwards so its targets use your newest information.'], ['Can one meal be called healthy or unhealthy?', 'Usually, no. A balanced eating pattern matters more than one individual meal. FitMeal supports flexible, nourishing habits without labelling foods as good or bad.'], ['Is FitMeal AI a doctor or dietitian?', 'No. The assistant provides general planning and nutrition guidance only. It does not diagnose, prescribe or replace advice from a doctor or registered dietitian.'], ['Where does the nutrition data come from?', 'Your starting targets are calculated from established energy-estimation formulas. Meal information is designed for planning and education; check product labels for exact packaged-food values.']];
   return <>
-    <section className="grid grid-cols-[.96fr_1.04fr] max-[900px]:grid-cols-1 gap-14 max-[900px]:gap-10.5 max-[720px]:gap-8.75 items-center min-h-[680px]">
+    <section className="grid min-h-155 grid-cols-[.92fr_1.08fr] items-center gap-16 max-[900px]:min-h-0 max-[900px]:grid-cols-1 max-[900px]:gap-12">
       <Reveal>
-        <span className="uppercase tracking-[.04em] font-sans font-semibold text-[13px] text-accent bg-badge px-3 py-1.75 inline-block">Track. Eat. Achieve.</span>
-        <h1 className="text-balance">Healthier Eating<br />Starts with<br /><em>Every Meal</em></h1>
-        <p className="text-lg leading-[1.45] text-ink-soft max-w-[570px]">FitMeal helps you understand nutrition, discover balanced recipes, plan meals and build eating habits that work in everyday life.</p>
-        <div className="flex items-center gap-6 mt-6 mb-8.75 max-[720px]:flex-wrap">
-          <Link className="primary" to="/planner">Get Started Free</Link>
+        <span className="inline-flex rounded-full border border-line px-3.5 py-2 font-sans text-[12px] font-semibold uppercase tracking-[.1em] text-accent bg-badge">Personal nutrition, made practical</span>
+        <h1 className="max-w-155 text-balance">Eat with clarity.<br /><em>Live with balance.</em></h1>
+        <p className="max-w-142.5 text-lg leading-[1.65] text-ink-soft">FitMeal turns your goals into a simple daily meal plan, flexible recipe ideas, and progress insights you can use in real life.</p>
+        <div className="mt-7 mb-9 flex items-center gap-5 max-[480px]:items-stretch max-[480px]:flex-col">
+          <Link className="primary shadow-[0_10px_30px_rgba(0,0,0,.2)]" to="/planner">Create my meal plan <span aria-hidden="true" className="ml-2">→</span></Link>
           <a className="flex items-center gap-2.5 text-ink no-underline font-semibold" href="#how-it-works">
-            <span className="grid place-items-center border border-line-strong rounded-full w-10.75 h-10.75 text-[11px]">▶</span>
-            How FitMeal works
+            <span className="grid place-items-center border border-line-strong rounded-full w-10 h-10 text-[10px]">▶</span>
+            See how it works
           </a>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="flex">
-            {['AB', 'CD', 'EF', 'GH'].map((initials) => <b key={initials} className="text-[10px] w-9 h-9 rounded-full grid place-items-center bg-[#1c1c1c] border-2 border-page -mr-1.75">{initials}</b>)}
-          </div>
-          <p className="max-w-102.5 m-0 text-ink-muted"><strong className="text-ink">Clear nutrition tools</strong> for everyday meals, personal goals and informed choices.</p>
+        <div className="grid max-w-142.5 grid-cols-3 gap-4 border-t border-line pt-5">
+          {[['4', 'daily meals'], ['6', 'visual themes'], ['100%', 'flexible']].map(([value, label]) => <div key={label}>
+            <strong className="block text-base text-ink">{value}</strong>
+            <span className="text-[12px] text-ink-muted">{label}</span>
+          </div>)}
         </div>
       </Reveal>
-      <Reveal delay={170} className="h-118.75 max-[720px]:h-97.5 relative max-[720px]:max-w-175 max-[720px]:w-full max-[720px]:ml-auto">
-        <div aria-label="Eat right, reach your goals — grilled chicken quinoa bowl with a FitMeal shaker and meal-plan notebook" className="h-117.5 max-[720px]:h-97.5 ml-17.5 max-[720px]:ml-7.5 rounded-[9px] bg-[linear-gradient(120deg,rgba(0,0,0,.05),rgba(0,0,0,.18)),url('/images/hero.jpg')] bg-cover bg-right" />
+      <Reveal delay={170} className="relative h-118.75 max-[720px]:h-100 max-[720px]:w-full max-[720px]:max-w-175 max-[720px]:ml-auto">
+        <div aria-label="Balanced meal beside a FitMeal shaker and meal-plan notebook" className="ml-17.5 h-117.5 rounded-3xl border border-line bg-[linear-gradient(120deg,rgba(0,0,0,.05),rgba(0,0,0,.2)),url('/images/hero.jpg')] bg-cover bg-right shadow-[0_30px_80px_rgba(0,0,0,.28)] max-[720px]:ml-7.5 max-[720px]:h-100" />
         <PhonePreview />
       </Reveal>
     </section>
 
-    <section id="features" className="grid grid-cols-4 max-[900px]:grid-cols-2 max-[720px]:grid-cols-1 gap-4.25 mt-32.5 max-[720px]:mt-17.5">
-      {[['♨', 'View Progress', 'See your habits and stay motivated.'], ['▤', 'Healthy Recipes', 'Simple food ideas for every day.'], ['▥', 'Meal Planning', 'Build a plan around your goals.'], ['▥', 'Food Database', 'Understand what is on your plate.']].map(([icon, title, text], index) => <Reveal key={title} delay={index * 100}>
-        <article className="p-6.5 border border-line min-h-46.25 bg-surface">
-          <span className="grid place-items-center w-11 h-11 bg-icon text-accent text-[19px]">{icon}</span>
+    <section id="features" className="grid grid-cols-4 max-[900px]:grid-cols-2 max-[620px]:grid-cols-1 gap-4.25 mt-28 max-[720px]:mt-20">
+      {[['01', 'Personal targets', 'Start with calorie and macro estimates shaped around your profile.'], ['02', 'Curated recipes', 'Explore practical meal ideas for losing, maintaining, or gaining weight.'], ['03', 'Flexible planning', 'Follow the suggestion, swap a meal, or refresh the day when plans change.'], ['04', 'Progress insights', 'Turn regular weight check-ins into a clear, useful trend.']].map(([icon, title, text], index) => <Reveal key={title} delay={index * 100}>
+        <article className="group min-h-48 h-full rounded-2xl border border-line bg-surface p-6.5 shadow-[0_12px_35px_rgba(0,0,0,.08)] transition hover:-translate-y-1 hover:border-line-strong">
+          <span className="grid h-10 w-10 place-items-center rounded-xl bg-icon font-mono text-[13px] text-accent">{icon}</span>
           <h3 className="font-display font-semibold text-[17px] mt-4.5">{title}</h3>
-          <p className="text-ink-muted text-[13px] leading-[1.4]">{text}</p>
+          <p className="text-ink-muted text-[13px] leading-[1.55]">{text}</p>
         </article>
       </Reveal>)}
     </section>
 
     <Reveal className="grid grid-cols-2 max-[900px]:grid-cols-1 gap-20 max-[900px]:gap-7 items-end mt-36.25 max-[720px]:mt-20">
       <div>
-        <span className="uppercase tracking-[.04em] font-sans font-semibold text-[13px] text-accent bg-badge px-3 py-1.75 inline-block">Built around you</span>
+        <span className="inline-flex rounded-full border border-line bg-badge px-3.5 py-2 font-sans text-[12px] font-semibold uppercase tracking-[.1em] text-accent">Built around you</span>
         <h2 className="text-[clamp(35px,4vw,56px)] leading-[1.05]">Not another one-size-fits-all diet.</h2>
       </div>
       <p className="m-0 text-ink-soft text-[17px] leading-[1.6]">FitMeal estimates your daily energy needs from your weight, height, age, activity level and goal. It then turns those numbers into a simple daily plan you can actually follow.</p>
@@ -99,8 +99,8 @@ export function HomePage() {
 
     <section className="grid grid-cols-3 max-[900px]:grid-cols-1 gap-4.5 mt-9.5">
       {goals.map(([symbol, title, text], index) => <Reveal key={title} delay={index * 110}>
-        <article className="h-full p-7.5 border border-line bg-surface">
-          <span className="grid place-items-center w-12 h-12 border border-[#5c5644] text-accent font-display text-[30px]">{symbol}</span>
+        <article className="h-full rounded-2xl p-7.5 border border-line bg-surface shadow-[0_12px_35px_rgba(0,0,0,.08)]">
+          <span className="grid place-items-center w-12 h-12 rounded-xl border border-line-strong bg-surface-alt text-accent font-display text-[30px]">{symbol}</span>
           <h3 className="font-display font-semibold text-2xl mt-6.5 mb-2.5">{title}</h3>
           <p className="text-ink-muted leading-[1.55] m-0">{text}</p>
         </article>
@@ -108,10 +108,10 @@ export function HomePage() {
     </section>
 
     <section id="how-it-works" className="mt-33.75 max-[720px]:mt-20 py-13.75 border-t border-b border-line">
-      <Reveal><span className="uppercase tracking-[.04em] font-sans font-semibold text-[13px] text-accent bg-badge px-3 py-1.75 inline-block">A simple routine</span><h2 className="text-[clamp(35px,4vw,56px)] leading-[1.05]">Know what to do next.</h2></Reveal>
+      <Reveal><span className="inline-flex rounded-full border border-line bg-badge px-3.5 py-2 font-sans text-[12px] font-semibold uppercase tracking-[.1em] text-accent">A simple routine</span><h2 className="text-[clamp(35px,4vw,56px)] leading-[1.05]">Know what to do next.</h2></Reveal>
       <div className="mt-10.5">
         {steps.map(([number, title, text], index) => <Reveal key={number} delay={index * 140}>
-          <article className="grid grid-cols-[95px_1fr] gap-7 py-6 border-t border-[#292a27]">
+          <article className="grid grid-cols-[95px_1fr] gap-7 py-6 border-t border-line max-[560px]:grid-cols-[56px_1fr] max-[560px]:gap-4">
             <span className="text-accent font-mono text-[22px]">{number}</span>
             <div><h3 className="font-display font-semibold text-2xl mt-0 mb-2">{title}</h3><p className="text-ink-muted leading-[1.55] m-0">{text}</p></div>
           </article>
@@ -119,9 +119,9 @@ export function HomePage() {
       </div>
     </section>
 
-    <Reveal className="grid grid-cols-[1.1fr_.9fr] max-[900px]:grid-cols-1 gap-17.5 max-[900px]:gap-7 mt-30 max-[720px]:mt-20 p-14.5 bg-[#1a1b18]">
+    <Reveal className="grid grid-cols-[1.1fr_.9fr] max-[900px]:grid-cols-1 gap-17.5 max-[900px]:gap-7 mt-30 max-[720px]:mt-20 p-14.5 max-[720px]:p-7 rounded-3xl border border-line bg-surface shadow-[0_20px_60px_rgba(0,0,0,.12)]" >
       <div>
-        <span className="uppercase tracking-[.04em] font-sans font-semibold text-[13px] text-accent bg-badge px-3 py-1.75 inline-block">Nutrition, made clear</span>
+        <span id="nutrition-guide" className="inline-flex rounded-full border border-line bg-badge px-3.5 py-2 font-sans text-[12px] font-semibold uppercase tracking-[.1em] text-accent">Nutrition, made clear</span>
         <h2 className="text-[clamp(35px,4vw,56px)] leading-[1.05] mb-0">Calories give you energy.<br /><em>Macros help you use it well.</em></h2>
       </div>
       <div>
@@ -130,8 +130,7 @@ export function HomePage() {
       </div>
     </Reveal>
 
-    {/* Deliberately theme-independent dark panel, like the phone mockup above. */}
-    <Reveal className="grid grid-cols-[.8fr_1.2fr] max-[900px]:grid-cols-1 gap-11 mt-27.5 max-[720px]:mt-20 p-10 max-[720px]:p-6.25 border border-[#383933] bg-[#121312]">
+    <Reveal className="grid grid-cols-[.8fr_1.2fr] max-[900px]:grid-cols-1 gap-11 mt-27.5 max-[720px]:mt-20 p-10 max-[720px]:p-6.25 rounded-3xl border border-line bg-surface-alt">
       <div>
         <h2 className="text-[29px] leading-[1.2] mt-2.5 mb-3.5">A healthy diet is more than counting calories.</h2>
         <p className="text-ink-soft text-[17px] leading-[1.55] m-0">The World Health Organization describes four foundations of healthy eating: adequacy, balance, moderation and diversity. Individual needs still vary with age, lifestyle, culture and health.</p>
@@ -141,41 +140,39 @@ export function HomePage() {
         </div>
       </div>
       <div className="grid grid-cols-2 max-[720px]:grid-cols-1 gap-3.5">
-        {[['🥕', 'Eat varied and colourful', 'Build meals around vegetables, fruit, pulses, whole grains, nuts and other nutrient-rich foods.'], ['💧', 'Choose water first', 'Water and unsweetened drinks are practical everyday choices.'], ['🌾', 'Prefer fibre-rich foods', 'Whole grains, vegetables, fruit and pulses support fibre intake and fullness.'], ['⚖️', 'Think in patterns', 'One food does not define health. Overall balance, portions and regular habits matter.']].map(([icon, title, text]) => <article key={title} className="py-5.5 px-4.5 bg-on-accent">
+        {[['🥕', 'Eat varied and colourful', 'Build meals around vegetables, fruit, pulses, whole grains, nuts and other nutrient-rich foods.'], ['💧', 'Choose water first', 'Water and unsweetened drinks are practical everyday choices.'], ['🌾', 'Prefer fibre-rich foods', 'Whole grains, vegetables, fruit and pulses support fibre intake and fullness.'], ['⚖️', 'Think in patterns', 'One food does not define health. Overall balance, portions and regular habits matter.']].map(([icon, title, text]) => <article key={title} className="rounded-2xl border border-line py-5.5 px-4.5 bg-surface">
           <span className="text-[29px]">{icon}</span>
           <h3 className="font-display font-semibold text-[17px] mt-3 mb-1.25">{title}</h3>
-          <p className="text-[#b4aea2] leading-[1.35] m-0 text-sm">{text}</p>
+          <p className="text-ink-muted leading-[1.45] m-0 text-sm">{text}</p>
         </article>)}
       </div>
     </Reveal>
 
-    {/* Deliberately theme-independent dark panel, like the sections above. */}
-    <Reveal className="mt-27 max-[720px]:mt-20 p-11 max-[720px]:p-6.25 border border-accent bg-[#28281f]">
-      <span className="font-sans font-semibold text-[13px] tracking-[.04em] uppercase text-[#10110f] bg-accent px-3.25 py-1.75 inline-block">Coming soon</span>
-      <h2 className="text-[34px] mt-2.25 mb-3">FitMeal will also be available as a mobile app</h2>
-      <p className="max-w-177.5 text-ink-soft text-[17px] leading-[1.55] m-0">We are planning a simple FitMeal app for your phone. It will give you quick access to recipes, nutrition tracking and your personal meal plan while you are on the go.</p>
+    <Reveal className="mt-27 max-[720px]:mt-20 p-11 max-[720px]:p-6.25 rounded-3xl border border-accent bg-badge">
+      <span className="inline-flex rounded-full bg-accent px-3.5 py-2 font-sans text-[12px] font-semibold uppercase tracking-[.1em] text-on-accent">Designed for real life</span>
+      <h2 className="text-[34px] mt-4 mb-3">Your plan stays useful when the day changes.</h2>
+      <p className="max-w-177.5 text-ink-soft text-[17px] leading-[1.55] m-0">FitMeal keeps the process simple: start with a clear plan, record what actually happened, and use the trend—not one imperfect meal—to decide what comes next.</p>
       <div className="grid grid-cols-3 max-[900px]:grid-cols-1 gap-4.5 mt-7.5">
-        {[['1', 'Download the app', 'Get FitMeal from your phone’s app store when it becomes available.'], ['2', 'Use the same account', 'Log in with your existing FitMeal account—no new profile needed.'], ['3', 'Continue anywhere', 'Your planned meals, nutrition entries and progress will stay connected.']].map(([number, title, text]) => <article key={number} className="p-5.5 border border-accent bg-[#171815]">
-          <span className="grid place-items-center w-9.25 h-9.25 rounded-full bg-accent text-[#111] font-bold">{number}</span>
+        {[['1', 'Plan the day', 'Use a goal-aware daily menu as a practical starting point.'], ['2', 'Stay flexible', 'Confirm the suggestion or record a different meal without losing context.'], ['3', 'Review the trend', 'Use check-ins and recent meal activity to make measured adjustments.']].map(([number, title, text]) => <article key={number} className="rounded-2xl p-5.5 border border-line bg-surface">
+          <span className="grid place-items-center w-9.25 h-9.25 rounded-full bg-accent text-on-accent font-bold">{number}</span>
           <h3 className="font-display font-semibold text-[17px] mt-4 mb-1.25">{title}</h3>
           <p className="m-0 text-ink-soft leading-[1.4]">{text}</p>
         </article>)}
       </div>
-      <small className="block mt-1.25 text-[#aaa498]">The website remains fully usable. The mobile app is a planned additional option and is not available for download yet.</small>
     </Reveal>
 
     <section className="max-w-216.25 mx-auto mt-33.75 max-[720px]:mt-20">
-      <Reveal><div className="text-center"><span className="uppercase tracking-[.04em] font-sans font-semibold text-[13px] text-accent bg-badge px-3 py-1.75 inline-block">Frequently asked</span><h2 className="text-[clamp(35px,4vw,54px)]">Frequently asked questions</h2></div></Reveal>
+      <Reveal><div className="text-center"><span className="inline-flex rounded-full border border-line bg-badge px-3.5 py-2 font-sans text-[12px] font-semibold uppercase tracking-[.1em] text-accent">Frequently asked</span><h2 className="text-[clamp(35px,4vw,54px)]">Questions, answered clearly.</h2></div></Reveal>
       <Reveal delay={100} className="grid gap-3.5 mt-8.75">
         {faqs.slice(0, showAllQuestions ? faqs.length : 5).map(([question, answer]) => <FaqItem key={question} question={question} answer={answer} isOpen={openQuestion === question} onOpen={() => setOpenQuestion(current => current === question ? null : question)} />)}
-        <button type="button" className="justify-self-center mt-2.5 border border-accent bg-transparent text-accent px-4.5 py-3 text-sm" onClick={() => { setShowAllQuestions(current => !current); setOpenQuestion(null); }}>{showAllQuestions ? 'Show fewer questions' : `See all questions (${faqs.length})`}</button>
+        <button type="button" className="justify-self-center mt-2.5 rounded-xl border border-accent bg-transparent text-accent px-4.5 py-3 text-sm hover:bg-badge hover:border-accent" onClick={() => { setShowAllQuestions(current => !current); setOpenQuestion(null); }}>{showAllQuestions ? 'Show fewer questions' : `See all questions (${faqs.length})`}</button>
       </Reveal>
     </section>
 
-    <Reveal className="mt-27 max-[720px]:mt-17.5 mx-auto max-w-137.5 text-center py-16.25 max-[720px]:py-11.25 px-6 max-[720px]:px-4.5 bg-surface-alt rounded-[7px]">
-      <h2 className="text-4xl mb-3.5">Ready to get started?</h2>
-      <p className="text-lg text-ink-soft mb-6.75">Start exploring healthy meal ideas today.</p>
-      <Link className="primary" to="/planner">View meal planner</Link>
+    <Reveal className="mt-27 max-[720px]:mt-17.5 mx-auto max-w-180 text-center py-16 max-[720px]:py-11 px-8 max-[720px]:px-5 border border-line bg-surface-alt rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,.12)]">
+      <h2 className="text-4xl mb-3.5">Ready for a plan that fits your life?</h2>
+      <p className="text-lg text-ink-soft mb-6.75">Create your profile once and get a practical meal plan for today.</p>
+      <Link className="primary" to="/planner">Build my plan <span aria-hidden="true" className="ml-2">→</span></Link>
     </Reveal>
   </>;
 }

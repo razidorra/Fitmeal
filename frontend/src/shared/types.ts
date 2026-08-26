@@ -11,6 +11,6 @@ export interface MealPlan {
 export interface Checkin { _id: string; weightKg: number; note?: string; date: string; }
 export interface ChatMessage { role: 'user' | 'assistant'; content: string; }
 export interface ProgressReview {
-  stats: { goal: Goal; firstWeight: number; latestWeight: number; totalChangeKg: number; weeklyRateKg: number | null; checkinCount: number; onTrack: boolean | null; mealsChecked: number; greatFitCount: number; poorFitCount: number };
+  stats: { goal: Goal; firstWeight: number; latestWeight: number; totalChangeKg: number; weeklyRateKg: number | null; checkinCount: number; onTrack: boolean | null; loggedMealCount: number; confirmedMealCount: number; changedMealCount: number };
   summary: string;
 }

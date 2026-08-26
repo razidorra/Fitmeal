@@ -1,149 +1,189 @@
 # FitMeal
 
-FitMeal is a TypeScript full-stack meal-planning application. It provides a nutrition-focused home page, personalised meal plans, and weight check-ins.
+FitMeal is a full-stack meal-planning application built with TypeScript. It combines a public recipe collection with account-scoped profiles, daily meal plans, weight check-ins, rule-based progress reviews, and an optional Groq-powered nutrition assistant.
+
+> Current stage: the final project feature set is implemented and covered by the backend test suite. Local development and Render deployment are configured; creating the external accounts, supplying secrets, and completing the first production deployment remain manual steps.
+
+FitMeal is an educational planning aid. Nutrition values are estimates and the application does not provide medical or dietetic advice.
+
+## Features
+
+- Public home page and a responsive recipe collection with 25 recipes, category/goal filters, nutrition estimates, and an optional sign-in prompt before opening the detail modal.
+- Clerk authentication with a custom account summary, visible sign-out control, and per-user data ownership.
+- Editable nutrition profile with calorie and macro targets calculated from the Mifflin-St Jeor formula.
+- One persisted meal plan per local calendar day, deterministic menu variety, goal-specific choices, manual refresh, and a Sunday free-choice day.
+- Per-meal confirmation or free-text replacement while preserving the original suggestion and recipe details.
+- Two-week plan history grouped into this week and the previous week.
+- Weight check-ins and a deterministic progress review based on weight direction and the latest meal log.
+- Groq-powered assistant chat in the Meal Planner and in a floating site-wide panel for signed-in users.
+- Clearly labelled offline assistant guidance when Groq is unavailable or not configured.
+- Six device-persisted visual themes and responsive desktop/mobile navigation.
+- Page-level error boundaries plus loading, empty, guest, and error states for asynchronous screens.
 
 ## Technology
 
-- Frontend: React, Vite, TypeScript, TanStack Router, Tailwind CSS
-- Backend: Node.js, Express, TypeScript
-- Database: MongoDB with Mongoose
-- Tooling: npm workspaces
+| Area | Stack |
+| --- | --- |
+| Frontend | React 18, Vite 6, TypeScript, TanStack Router, Tailwind CSS 4 |
+| Backend | Node.js, Express 4, TypeScript, Zod |
+| Data | MongoDB, Mongoose |
+| Authentication | Clerk (`@clerk/react`, `@clerk/express`) |
+| Assistant | Groq chat completions API |
+| Tests | Vitest, Supertest, `mongodb-memory-server` |
+| Workspace | npm workspaces |
+
+## Project structure
+
+```text
+frontend/src/features/       page and feature components
+frontend/src/routes/         TanStack Router layout and routes
+frontend/src/shared/         API client, shared types, themes, reusable UI
+frontend/public/images/      static site and recipe images
+backend/src/features/        profile, meal-plan, progress, and assistant features
+backend/src/shared/          auth, ownership, database, and Groq helpers
+backend/src/test/            shared test database lifecycle
+docs/                        specification, audit history, and deployment guide
+render.yaml                  Render Blueprint for the API and frontend
+```
 
 ## Run locally
 
-1. Copy `backend/.env.example` to `backend/.env`.
-2. Set `MONGODB_URI` in `backend/.env`.
-3. Run `npm install` from the repository root.
-4. Run `npm run dev`.
-5. Open `http://localhost:5173`.
+### Prerequisites
 
-The frontend runs on port 5173 and the API runs on port 4000. Vite forwards browser requests from `/api` to the API automatically.
+- A current Node.js LTS release with npm.
+- A MongoDB database. MongoDB Atlas is suitable; tests do not use this database.
+- A Clerk application for account-backed planner, progress, recipe-detail, account, and assistant features.
+- Optionally, a Groq API key for live assistant responses.
+
+### Setup
+
+1. Install both workspaces from the repository root:
+
+   ```bash
+   npm install
+   ```
+
+2. Create local environment files from the tracked examples:
+
+   ```bash
+   cp backend/.env.example backend/.env
+   cp frontend/.env.example frontend/.env
+   ```
+
+3. Add your MongoDB and matching Clerk keys. Add a Groq key if live AI replies are wanted.
+4. Start both applications:
+
+   ```bash
+   npm run dev
+   ```
+
+5. Open `http://localhost:5173`. The API runs at `http://localhost:4000`, and Vite proxies local `/api` requests to it.
+
+The canonical backend environment file is `backend/.env`. `backend/src/.env` is read only as a temporary compatibility fallback and should be moved to `backend/.env` for new setups.
+
+## Environment variables
+
+### Backend (`backend/.env`)
+
+| Variable | Required | Purpose |
+| --- | --- | --- |
+| `PORT` | No | API port; defaults to `4000` |
+| `MONGODB_URI` | Yes for data features | MongoDB connection string |
+| `CLERK_PUBLISHABLE_KEY` | Yes for protected features | Backend Clerk configuration |
+| `CLERK_SECRET_KEY` | Yes for protected features | Verifies Clerk sessions |
+| `GROQ_API_KEY` | No | Enables live FitMeal AI answers |
+| `GROQ_MODEL` | No | Groq model; defaults to `openai/gpt-oss-20b` |
+
+### Frontend (`frontend/.env`)
+
+| Variable | Required | Purpose |
+| --- | --- | --- |
+| `VITE_CLERK_PUBLISHABLE_KEY` | Yes for account features | Enables Clerk UI and authenticated requests |
+| `VITE_API_PROXY_TARGET` | No | Local Vite proxy target; defaults to `http://localhost:4000` |
+| `VITE_API_URL` | Production only | Public API base URL including `/api` |
+
+Use the same Clerk application on the frontend and backend. If Clerk is not configured, public pages and recipe details remain available, while planner, progress, account, and assistant features show configuration guidance. If only one side is configured, authenticated data requests cannot work correctly.
+
+Never commit `.env` files, database credentials, Clerk secrets, or API keys.
+
+The recipe-card sign-in prompt is a UI gate, not access control: the retained `/recipes/:recipeSlug` deep-link route remains public. See the specification's known constraints for this and the other remaining hardening items.
+
+## How meal planning works
+
+The planner accepts age, sex, height, weight, activity level, and goal. The backend calculates a daily target, then assigns one Breakfast, Lunch, Snack, and Dinner. Menu selection is deterministic from the profile goal, local date, and meal slot, so reloads preserve a day while different days rotate through the available pool.
+
+The first planner visit on a date creates that day's plan. Later visits return the saved plan, preserving confirmations and replacements. **Refresh plan** intentionally replaces the current day's saved plan. Every Sunday is represented as a free-choice day without fixed meals, calorie displays, or confirmation controls.
+
+Meal confirmation, meal replacement, and progress review are rule-based and never call Groq. A replacement records the user's description but retains the original suggested meal's title, image, ingredients, and preparation steps. Because FitMeal does not estimate free-text nutrition, the slot keeps its original calorie/protein budget for display.
+
+## AI assistant
+
+The assistant chat is the only feature that calls an AI service. Signed-in users can use it from the Meal Planner or the floating launcher on any route. Configure it with:
+
+```env
+GROQ_API_KEY=your_key_here
+GROQ_MODEL=openai/gpt-oss-20b
+```
+
+If Groq is missing, unavailable, or over quota, the API returns clearly labelled basic offline guidance for supported nutrition questions. The rest of FitMeal remains independent of Groq.
 
 ## Commands
 
+Run these from the repository root:
+
 ```bash
-npm run dev     # Start frontend and backend
-npm run build   # Build frontend and backend
+npm run dev      # run frontend and backend in watch mode
+npm run build    # type-check/build the frontend, then build the backend
+npm test         # run the backend test suite once
 ```
 
-To build only one workspace:
+Workspace-specific alternatives:
 
 ```bash
 npm run build -w frontend
 npm run build -w backend
-```
-
-## Tests
-
-```bash
 npm run test -w backend
+npm run test:watch -w backend
 ```
 
-Runs the backend suite (Vitest + Supertest + an in-memory MongoDB via `mongodb-memory-server` —
-no real database or Clerk account needed): pure unit tests for the calorie/macro formula, the
-meal-plan variety/goal-selection logic, and cheat-day detection, plus route-level tests for
-`/api/profiles` covering the per-user ownership scoping (`findOwnedProfile`) — that one signed-in
-user can never read or edit another user's profile.
-
-The frontend has an `ErrorBoundary` (`frontend/src/shared/components/ErrorBoundary.tsx`) around
-each routed page, so a crash in one page shows a "Something went wrong — try again" fallback
-instead of a blank screen, while the header/nav/footer stay usable.
-
-## Meal planning
-
-Each day's plan is generated per profile (get-or-create by the user's own local date) with one
-meal per Breakfast/Lunch/Snack/Dinner slot. The dish for each slot is chosen from a small pool,
-deterministically, from the date, the profile's goal, and the slot itself — so the same day always
-shows the same plan on reload (only the "Refresh plan" button forces a new pick for that day),
-while different days spread out across the pool instead of repeating the same four dishes. A
-"lose" goal and a "maintain"/"gain" goal draw from separate pools, so the plan itself looks
-different for those two directions, not only differently portioned.
-
-Every Sunday is a cheat day: the plan carries a free-choice placeholder for all four slots instead
-of a fixed menu, shown as its own banner with no calorie targets or confirm/swap controls.
-
-Swapping a meal for something else, or confirming it was eaten as suggested, is always plain and
-rule-based — see [AI assistant (Gemini)](#ai-assistant-gemini) below for the one feature that
-actually calls an AI.
-
-## Account status
-
-When signed in, the header shows the account's avatar, name (or email), a green "online"
-indicator, and a directly-clickable **Log out** button — sign-out doesn't require opening a menu
-first.
-
-## Configuration
-
-```env
-# backend/.env
-PORT=4000
-MONGODB_URI=mongodb+srv://<username>:<password>@<cluster>/<database>
-```
-
-For a separately hosted frontend, configure `VITE_API_URL` with the public API base URL, including `/api`:
-
-```env
-VITE_API_URL=https://api.example.com/api
-```
-
-Never commit `.env` files or API keys.
-
-## AI assistant (Gemini)
-
-The AI assistant chat is the only feature that uses Google Gemini — meal swaps and progress reviews are plain, rule-based, and never call any AI. Get a free API key (no credit card needed) at [aistudio.google.com/apikey](https://aistudio.google.com/apikey):
-
-```env
-# backend/.env
-GEMINI_API_KEY=your-key-here
-GEMINI_MODEL=gemini-flash-latest
-```
-
-Without a key, the assistant returns a clear "not set up yet" message instead of an error; the rest of the app works normally. Gemini's free tier has a daily quota — once it's used up, the assistant returns a friendly "usage limit" message until it resets; nothing else in the app is affected.
-
-## Appearance
-
-The whole site supports six themes — "Midnight Gold" (dark, default), "Warm Light", "Rose Pink", "Ocean Blue", "Forest Green", and "Slate Gray" — toggled from the Account page (`/account`, signed-in only) and saved per device in `localStorage`.
-
-Styling is Tailwind CSS (v4) utility classes throughout. The six themes stay CSS custom properties (`--bg-page`, `--text-primary`, `--accent`, etc.) in `frontend/src/styles.css`, swapped via a `data-theme` attribute on `<html>` — Tailwind's color utilities (`bg-page`, `text-ink`, `text-accent`, ...) are mapped onto those same variables via `@theme inline`, so every utility class already follows theme changes with no extra work. A small `@layer base` block covers genuinely global element defaults (`button`, `h1`–`h3`, `input`/`select`); everything else is per-component utility classes in JSX.
-
-Every page also carries a subtle background photo (`frontend/public/images/backG.jpg`) behind all content, tinted with each theme's own page color so it reads as ambient texture rather than competing with text — every card/panel keeps its own solid background, so the photo only shows through in the gaps between them.
-
-## Clerk authentication
-
-Clerk is installed for both applications. Create a Clerk application, then copy its keys into the local environment files:
-
-```env
-# frontend/.env
-VITE_CLERK_PUBLISHABLE_KEY=pk_test_...
-
-# backend/.env
-CLERK_PUBLISHABLE_KEY=pk_test_...
-CLERK_SECRET_KEY=sk_test_...
-```
-
-Restart `npm run dev` after changing environment variables. When both Clerk keys are configured, the frontend shows Clerk login, sign-up, and user-menu components, and the backend enables Clerk middleware. Every profile/meal-plan/progress/assistant route requires a signed-in session and checks that the requested record actually belongs to that user.
+There is currently no frontend test runner. The authoritative frontend check is `npm run build`, which runs `tsc -b` before the Vite production build. Backend tests cover target calculations, meal-plan selection and cheat days, assistant fallback guidance, persisted plan/review behavior, authentication, and cross-user ownership using an ephemeral in-memory MongoDB.
 
 ## API routes
 
+All routes except health require a valid Clerk session. Resource routes also verify ownership; requests for another user's profile or related records return `404`.
+
 | Method | Route | Purpose |
 | --- | --- | --- |
-| GET | `/api/health` | API health check |
-| GET | `/api/profiles/latest` | Read the signed-in user's saved profile |
-| POST | `/api/profiles` | Create a profile |
-| PATCH | `/api/profiles/:profileId` | Edit a saved profile |
-| POST | `/api/meal-plans/generate/:profileId` | Get-or-create today's plan (pass `regenerate: true` to force a new one) |
-| GET | `/api/meal-plans/latest/:profileId` | Read the most recent meal plan for a profile |
-| GET | `/api/meal-plans/:profileId/history` | Read recent days' plans for the week view |
-| POST | `/api/meal-plans/:planId/meals/:time` | Replace a meal slot with a freely-typed meal (rule-based, no AI) |
-| PATCH | `/api/meal-plans/:planId/meals/:time/confirm` | Confirm a meal slot was eaten as suggested |
-| GET | `/api/progress/:profileId` | Read weight check-in history |
-| POST | `/api/progress` | Add a weight check-in |
-| POST | `/api/progress/:profileId/review` | Compute a progress verdict with a rule-based written summary (no AI) |
-| POST | `/api/assistant/chat` | Ask the FitMeal AI assistant a question (uses Gemini) |
+| `GET` | `/api/health` | API health check |
+| `GET` | `/api/profiles/latest` | Read the signed-in user's latest profile |
+| `POST` | `/api/profiles` | Create a profile |
+| `PATCH` | `/api/profiles/:profileId` | Update an owned profile |
+| `POST` | `/api/meal-plans/generate/:profileId` | Get/create a dated plan, or regenerate it |
+| `GET` | `/api/meal-plans/latest/:profileId` | Read the most recently created plan |
+| `GET` | `/api/meal-plans/:profileId/history` | Read recent dated plans; `days` defaults to 14 and is capped at 60 |
+| `POST` | `/api/meal-plans/:planId/meals/:time` | Save a free-text meal replacement |
+| `PATCH` | `/api/meal-plans/:planId/meals/:time/confirm` | Confirm the suggested meal |
+| `GET` | `/api/progress/:profileId` | Read weight check-ins |
+| `POST` | `/api/progress` | Add a weight check-in |
+| `POST` | `/api/progress/:profileId/review` | Build a rule-based progress review |
+| `POST` | `/api/assistant/chat` | Ask the Groq-backed assistant, with local fallback |
+
+## Deployment and remaining handoff work
+
+The repository includes a Render Blueprint for a free Node web service and static frontend. Follow [the deployment guide](docs/DEPLOYMENT.md) to create the services, configure MongoDB/Clerk/Groq, connect the frontend URL to the API, and complete the production smoke test.
+
+Before calling a release complete:
+
+1. Run `npm run build` and `npm test`.
+2. Deploy the Blueprint and configure all required service variables.
+3. Add the deployed frontend origin/redirect URLs in Clerk and allow the API to reach MongoDB Atlas.
+4. Verify health, sign-up/sign-in/sign-out, profile creation/editing, daily plan generation, meal logging, history, check-ins, progress review, themes, mobile navigation, direct recipe URLs, and both live/fallback assistant behavior.
+5. Replace permissive production CORS with the deployed frontend origin if the application is moving beyond a demonstration deployment.
 
 ## Documentation
 
-- [Build plan](docs/SPEC.md)
-- [Change protocol](docs/AUDIT.md)
-- [Development guide](AGENTS.md)
+- [Product specification and release status](docs/SPEC.md)
 - [Deployment guide](docs/DEPLOYMENT.md)
+- [Dated implementation audit](docs/AUDIT.md)
+- [Contributor/development guide](AGENTS.md)
+- [Recipe image notes](frontend/public/images/recipes/README.md)
