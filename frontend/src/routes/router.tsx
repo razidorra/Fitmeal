@@ -93,5 +93,10 @@ const recipeDetailsRoute = createRoute({ getParentRoute: () => rootRoute, path: 
 const plannerRoute = createRoute({ getParentRoute: () => rootRoute, path: '/planner', component: MealPlannerPage });
 const progressRoute = createRoute({ getParentRoute: () => rootRoute, path: '/progress', component: ProgressPage });
 const accountRoute = createRoute({ getParentRoute: () => rootRoute, path: '/account', component: AccountPage });
-export const router = createRouter({ routeTree: rootRoute.addChildren([homeRoute, recipesRoute, recipeDetailsRoute, plannerRoute, progressRoute, accountRoute]) });
+// import.meta.env.BASE_URL mirrors vite.config.ts's `base` — "/" locally and on Render, "/Fitmeal/"
+// on GitHub Pages — so client-side routes resolve correctly wherever the build is served from.
+export const router = createRouter({
+  routeTree: rootRoute.addChildren([homeRoute, recipesRoute, recipeDetailsRoute, plannerRoute, progressRoute, accountRoute]),
+  basepath: import.meta.env.BASE_URL,
+});
 declare module '@tanstack/react-router' { interface Register { router: typeof router } }

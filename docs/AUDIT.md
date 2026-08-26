@@ -1,5 +1,20 @@
 # FitMeal change protocol
 
+## 2026-08-26 — GitHub Pages deployment for the frontend
+
+### Implemented
+
+- Added `.github/workflows/deploy-pages.yml`: builds `frontend/dist` and publishes it to GitHub Pages on every push to `main` (and on manual dispatch), reading `VITE_API_URL`/`VITE_CLERK_PUBLISHABLE_KEY` from repository Actions variables at build time.
+- `vite.config.ts` now sets `base: '/Fitmeal/'` when the workflow's `GITHUB_PAGES` flag is present (still `/` for local dev and Render, which serves from the domain root); `router.tsx` reads that same value via `basepath: import.meta.env.BASE_URL` so client-side routes resolve under the `/Fitmeal/` subpath.
+- The frontend build script now copies `dist/index.html` to `dist/404.html` so GitHub Pages — which has no server-side rewrite support — still loads the app on a hard-refreshed deep link; harmless on Render, which already has its own `/* → /index.html` rewrite.
+- Documented the one-time setup (enabling Pages as a GitHub Actions source, deploying the API first, setting the two build-time variables, adding the Pages origin to Clerk) in `docs/DEPLOYMENT.md`, and linked it from the README.
+- GitHub Pages only serves static files, so the Express API and MongoDB still need to run elsewhere (Render, per the existing Blueprint, or another Node host) — this change makes the frontend deployable there, not the whole stack.
+
+### Verification
+
+- `GITHUB_PAGES=true npm run build -w frontend` emits `/Fitmeal/`-prefixed asset URLs and a `404.html` identical to `index.html`; a plain `npm run build -w frontend` still emits root-relative (`/`) asset URLs, confirming Render/local are unaffected.
+- `npm run build` succeeds for both workspaces and `npm test` passes all 30 backend tests.
+
 ## 2026-08-26 — Professional visual-system redesign
 
 ### Implemented

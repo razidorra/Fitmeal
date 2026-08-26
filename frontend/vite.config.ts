@@ -5,6 +5,9 @@ import tailwindcss from '@tailwindcss/vite';
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   return {
+    // GitHub Pages serves this project from /Fitmeal/, not the domain root, so every built asset
+    // URL needs that prefix. Leave the dev server at "/" — GITHUB_PAGES is only set in CI.
+    base: process.env.GITHUB_PAGES ? '/Fitmeal/' : '/',
     plugins: [react(), tailwindcss()],
     server: {
       port: 5173,

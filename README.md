@@ -170,7 +170,7 @@ All routes except health require a valid Clerk session. Resource routes also ver
 
 ## Deployment and remaining handoff work
 
-The repository includes a Render Blueprint for a free Node web service and static frontend. Follow [the deployment guide](docs/DEPLOYMENT.md) to create the services, configure MongoDB/Clerk/Groq, connect the frontend URL to the API, and complete the production smoke test.
+The repository includes a Render Blueprint for a free Node web service and static frontend, plus a GitHub Actions workflow (`.github/workflows/deploy-pages.yml`) that can publish the frontend to GitHub Pages instead. Either way the API (and MongoDB) still needs to run on a Node host — GitHub Pages only serves static files. Follow [the deployment guide](docs/DEPLOYMENT.md) to create the services, configure MongoDB/Clerk/Groq, connect the frontend URL to the API, and complete the production smoke test.
 
 Before calling a release complete:
 

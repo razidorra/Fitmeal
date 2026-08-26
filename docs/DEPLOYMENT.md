@@ -121,6 +121,29 @@ Run this checklist on the deployed frontend:
 - [ ] Another signed-in account cannot read the first account's data.
 - [ ] Browser developer tools show no failed API/CORS/auth requests during the flow.
 
+## Alternative: GitHub Pages for the frontend
+
+GitHub Pages only serves static files — it cannot run the Express API or connect to MongoDB. Use it for the frontend and keep the API on Render (steps 1–3 above) or another Node host.
+
+`.github/workflows/deploy-pages.yml` builds `frontend/dist` and publishes it to Pages on every push to `main`. The frontend is already prepared for this: `vite.config.ts` sets `base: '/Fitmeal/'` when the workflow's `GITHUB_PAGES` flag is set, the router picks up that same base via `basepath: import.meta.env.BASE_URL`, and the build script copies `index.html` to `404.html` so a hard refresh on a deep link (e.g. `/Fitmeal/recipes/protein-oatmeal`) still loads the app instead of a host 404.
+
+To turn it on:
+
+1. In the repository, open **Settings → Pages** and set **Source** to **GitHub Actions** (one-time; this repo isn't currently serving a Pages site).
+2. Deploy the API first (steps 1–3 above) and note its `https://.../api` URL.
+3. Open **Settings → Secrets and variables → Actions → Variables** and add:
+
+   | Variable | Value |
+   | --- | --- |
+   | `VITE_API_URL` | `https://fitmeal-api.onrender.com/api` (your deployed API) |
+   | `VITE_CLERK_PUBLISHABLE_KEY` | Your Clerk publishable key |
+
+   These are read at build time by the workflow, the same way `VITE_*` values are read on Render — see step 4 above for why the value must include `/api` and why a change needs a new build to take effect.
+4. Push to `main` (or run the workflow manually from the **Actions** tab) and wait for the `Deploy frontend to GitHub Pages` run to finish. The site is then live at `https://razidorra.github.io/Fitmeal/`.
+5. Add `https://razidorra.github.io` as an allowed origin in Clerk (see step 5 above) — without it, sign-in will fail on the Pages URL even though it works on Render.
+
+Until `VITE_API_URL` is set, the build still deploys — the public Home and Recipes pages work, but sign-in, the planner, progress, and the assistant will fail since they have nothing to call.
+
 ## Operations and hardening
 
 ### Free-service behavior
