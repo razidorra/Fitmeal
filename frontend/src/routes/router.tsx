@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { createRootRoute, createRoute, createRouter, Link, Outlet } from '@tanstack/react-router';
-import { Show, SignInButton, SignUpButton, useClerk, useUser } from '@clerk/react';
+import { Show, SignInButton, SignUpButton, useAuth, useClerk, useUser } from '@clerk/react';
 import { HomePage } from '../features/home/HomePage';
 import { MealPlannerPage } from '../features/meal-plan/MealPlannerPage';
 import { ProgressPage } from '../features/progress/ProgressPage';
@@ -11,28 +11,56 @@ import { FloatingAssistant } from '../features/meal-plan/FloatingAssistant';
 import { isClerkConfigured } from '../shared/clerk';
 import { SiteFooter } from '../shared/components/SiteFooter';
 import { ErrorBoundary } from '../shared/components/ErrorBoundary';
+import { api } from '../shared/api';
+import { profileNameChangedEvent } from '../shared/profileEvents';
 
-const navLinkClass = 'rounded-lg px-3.5 py-2 text-ink-soft no-underline text-sm font-medium hover:bg-hover hover:text-ink';
-const navLinkActiveClass = 'bg-badge! text-accent! font-semibold';
+const navLinkClass = 'rounded-full px-4 py-2 text-ink-soft no-underline text-[13px] font-medium tracking-[.01em] hover:bg-hover hover:text-ink';
+const navLinkActiveClass = 'bg-accent! text-on-accent! font-semibold shadow-[0_4px_14px_rgba(0,0,0,.14)]';
 
 // Only ever mounted inside <Show when="signed-in">, so a real user is always loaded by the time
 // this renders — that's what makes calling useUser()/useClerk() here safe with no extra guards.
 function AccountStatus() {
   const { user } = useUser();
+  const { getToken } = useAuth();
   const { signOut } = useClerk();
-  const name = user?.firstName || user?.username || user?.primaryEmailAddress?.emailAddress || 'Account';
+  const [profileName, setProfileName] = useState('');
+  const name = profileName || user?.firstName || user?.username || user?.primaryEmailAddress?.emailAddress || 'Account';
 
-  return <div className="flex items-center gap-2.5 max-[900px]:hidden">
-    {user?.imageUrl && <img src={user.imageUrl} alt="" className="h-8.5 w-8.5 rounded-full border border-line-strong object-cover" />}
-    <div className="grid leading-tight">
-      <span className="flex items-center gap-1.5 text-[13px] font-semibold text-ink whitespace-nowrap">
-        <span className="w-1.75 h-1.75 rounded-full bg-good shrink-0" aria-hidden="true" title="Online" />
-        {name}
+  useEffect(() => {
+    async function loadProfileName() {
+      try {
+        const profile = await api.getProfile(await getToken());
+        setProfileName(profile?.name ?? '');
+      } catch {
+        // The Clerk identity below remains a safe fallback if profile loading is unavailable.
+      }
+    }
+
+    function handleProfileNameChange(event: Event) {
+      setProfileName((event as CustomEvent<string>).detail);
+    }
+
+    void loadProfileName();
+    window.addEventListener(profileNameChangedEvent, handleProfileNameChange);
+    return () => window.removeEventListener(profileNameChangedEvent, handleProfileNameChange);
+  }, [getToken]);
+
+  return <div className="flex items-center gap-2 pl-4 border-l border-line max-[720px]:hidden">
+    <Link to="/account" aria-label="Open account" className="group flex items-center gap-2.5 rounded-full py-1.5 pr-3 pl-1.5 text-ink no-underline hover:bg-hover">
+      {user?.imageUrl
+        ? <img src={user.imageUrl} alt="" className="h-8.5 w-8.5 rounded-full border-2 border-line-strong object-cover group-hover:border-accent" />
+        : <span className="grid h-8.5 w-8.5 place-items-center rounded-full bg-accent text-sm font-bold text-on-accent">{name.charAt(0).toUpperCase()}</span>}
+      <span className="grid leading-tight max-[1100px]:hidden">
+        <span className="text-[12px] text-ink-muted">Welcome back</span>
+        <span className="max-w-28 truncate text-[13px] font-semibold text-ink">{name}</span>
       </span>
-      <span className="text-[11px] text-ink-muted">Online</span>
-    </div>
-    <Link to="/account" className="rounded-lg px-3 py-2 text-accent text-[13px] font-semibold no-underline hover:bg-badge">Account</Link>
-    <button type="button" onClick={() => signOut({ redirectUrl: '/' })} className="rounded-lg bg-transparent border border-line-strong px-3 py-2 text-ink-soft text-[13px] hover:bg-hover hover:border-line-strong hover:text-ink whitespace-nowrap">Log out</button>
+    </Link>
+    <button type="button" aria-label="Log out" title="Log out" onClick={() => signOut({ redirectUrl: '/' })} className="grid h-9 w-9 place-items-center rounded-full border border-line bg-transparent p-0 text-ink-soft hover:border-line-strong hover:bg-hover hover:text-ink">
+      <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4.5 w-4.5 fill-none stroke-current" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M10 17l5-5-5-5M15 12H3" />
+        <path d="M14 3h4a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3h-4" />
+      </svg>
+    </button>
   </div>;
 }
 
@@ -42,36 +70,43 @@ function Layout() {
   // The boundary wraps only the routed page content, not the header/nav/footer — so a crash on
   // one page still leaves navigation usable to get somewhere else.
   return <>
-    <header className="sticky top-0 z-50 h-20 px-[max(4vw,32px)] max-[720px]:px-5 flex items-center gap-7.5 max-[720px]:gap-3 border-b border-line bg-page/95 backdrop-blur-xl shadow-[0_8px_30px_rgba(0,0,0,.12)]">
-      <Link to="/" className="font-display font-bold text-[25px] text-ink no-underline whitespace-nowrap">
-        <span className="font-sans text-xl inline-grid place-items-center w-9 h-9 rounded-xl bg-accent text-on-accent mr-2.5 shadow-[0_5px_18px_rgba(0,0,0,.18)]">♡</span>
-        Fit<span className="text-accent">Meal</span>
-      </Link>
-      <nav className="flex items-center gap-1 flex-1 max-[720px]:hidden">
-        <Link to="/" className={navLinkClass} activeProps={{ className: navLinkActiveClass }}>Home</Link>
-        <Link to="/recipes" className={navLinkClass} activeProps={{ className: navLinkActiveClass }}>Recipes</Link>
-        <Link to="/planner" className={navLinkClass} activeProps={{ className: navLinkActiveClass }}>Meal planner</Link>
-        <Link to="/progress" className={navLinkClass} activeProps={{ className: navLinkActiveClass }}>Progress</Link>
-      </nav>
-      {isClerkConfigured && <div className="flex items-center gap-2.5 max-[720px]:ml-auto">
-        <Show when="signed-out">
-          <SignInButton><button className="rounded-lg bg-transparent border border-line-strong px-4 py-2.5 text-sm text-ink hover:bg-hover hover:border-line-strong max-[480px]:hidden">Log in</button></SignInButton>
-          <SignUpButton><button className="rounded-lg px-4 py-2.5 text-sm max-[900px]:hidden">Sign up</button></SignUpButton>
-        </Show>
-        <Show when="signed-in"><AccountStatus /></Show>
-      </div>}
-      <button
-        type="button"
-        aria-label="Toggle navigation"
-        aria-controls="mobile-navigation"
-        aria-expanded={isMobileMenuOpen}
-        onClick={() => setIsMobileMenuOpen((current) => !current)}
-        className="hidden max-[720px]:grid place-items-center w-10 h-10 rounded-xl p-0 ml-auto border border-line-strong bg-surface text-ink text-xl hover:bg-hover hover:border-line-strong"
-      >
-        {isMobileMenuOpen ? '×' : '☰'}
-      </button>
+    <header className="sticky top-0 z-50 h-18 border-b border-line bg-page/90 px-[max(4vw,32px)] shadow-[0_8px_30px_rgba(0,0,0,.08)] backdrop-blur-xl max-[720px]:px-5">
+      <div className="mx-auto flex h-full w-full max-w-360 items-center gap-7.5 max-[720px]:gap-3">
+        <Link to="/" aria-label="FitMeal home" className="flex items-center gap-2.5 whitespace-nowrap text-ink no-underline">
+          <span className="grid h-9 w-9 place-items-center rounded-xl bg-accent text-on-accent shadow-[0_5px_16px_rgba(0,0,0,.16)]">
+            <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5 fill-none stroke-current" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20.8 4.6a5.4 5.4 0 0 0-7.7 0L12 5.7l-1.1-1.1a5.4 5.4 0 0 0-7.7 7.7L12 21l8.8-8.7a5.4 5.4 0 0 0 0-7.7Z" />
+              <path d="M8.2 12h2.2l1.1-2.3 1.5 4.6 1.1-2.3h2" />
+            </svg>
+          </span>
+          <span className="font-display text-[24px] font-bold tracking-[-.025em]">Fit<span className="text-accent">Meal</span></span>
+        </Link>
+        <nav aria-label="Primary navigation" className="flex items-center gap-0.5 rounded-full border border-line bg-surface/70 p-1 max-[720px]:hidden">
+          <Link to="/" className={navLinkClass} activeProps={{ className: navLinkActiveClass }}>Home</Link>
+          <Link to="/recipes" className={navLinkClass} activeProps={{ className: navLinkActiveClass }}>Recipes</Link>
+          <Link to="/planner" className={navLinkClass} activeProps={{ className: navLinkActiveClass }}>Meal planner</Link>
+          <Link to="/progress" className={navLinkClass} activeProps={{ className: navLinkActiveClass }}>Progress</Link>
+        </nav>
+        {isClerkConfigured && <div className="ml-auto flex items-center gap-2.5">
+          <Show when="signed-out">
+            <SignInButton><button className="rounded-full border border-line-strong bg-transparent px-4 py-2 text-sm text-ink hover:bg-hover hover:border-line-strong max-[480px]:hidden">Log in</button></SignInButton>
+            <SignUpButton><button className="rounded-full px-4 py-2 text-sm max-[900px]:hidden">Create account</button></SignUpButton>
+          </Show>
+          <Show when="signed-in"><AccountStatus /></Show>
+        </div>}
+        <button
+          type="button"
+          aria-label="Toggle navigation"
+          aria-controls="mobile-navigation"
+          aria-expanded={isMobileMenuOpen}
+          onClick={() => setIsMobileMenuOpen((current) => !current)}
+          className="hidden h-10 w-10 place-items-center rounded-full border border-line-strong bg-surface p-0 text-xl text-ink hover:border-line-strong hover:bg-hover max-[720px]:ml-auto max-[720px]:grid"
+        >
+          {isMobileMenuOpen ? '×' : '☰'}
+        </button>
+      </div>
     </header>
-    {isMobileMenuOpen && <nav id="mobile-navigation" className="sticky top-20 z-40 hidden max-[720px]:grid gap-1 border-b border-line bg-surface/98 px-5 py-3 shadow-xl animate-[mobile-menu-enter_180ms_ease-out]">
+    {isMobileMenuOpen && <nav id="mobile-navigation" className="sticky top-18 z-40 hidden max-[720px]:grid gap-1 border-b border-line bg-surface/98 px-5 py-3 shadow-xl animate-[mobile-menu-enter_180ms_ease-out]">
       <Link to="/" className="rounded-lg px-4 py-3 text-ink-soft no-underline" activeProps={{ className: navLinkActiveClass }} onClick={() => setIsMobileMenuOpen(false)}>Home</Link>
       <Link to="/recipes" className="rounded-lg px-4 py-3 text-ink-soft no-underline" activeProps={{ className: navLinkActiveClass }} onClick={() => setIsMobileMenuOpen(false)}>Recipes</Link>
       <Link to="/planner" className="rounded-lg px-4 py-3 text-ink-soft no-underline" activeProps={{ className: navLinkActiveClass }} onClick={() => setIsMobileMenuOpen(false)}>Meal planner</Link>

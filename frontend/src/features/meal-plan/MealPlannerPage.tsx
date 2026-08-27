@@ -8,6 +8,14 @@ import { MealPlanCard } from './MealPlanCard';
 import { ProfileForm } from './ProfileForm';
 import { PlanHistory } from './PlanHistory';
 import { PageLoading } from '../../shared/components/PageLoading';
+import { Reveal } from '../../shared/components/Reveal';
+import { announceProfileName } from '../../shared/profileEvents';
+
+const goalLabels: Record<Profile['goal'], string> = {
+  lose: 'Weight loss',
+  maintain: 'Weight maintenance',
+  gain: 'Weight gain',
+};
 
 export function MealPlannerPage() {
   if (!isClerkConfigured) return <section className="text-center py-22.5"><h1 className="text-[54px]">Sign-in is not configured.</h1><p>Set <code>VITE_CLERK_PUBLISHABLE_KEY</code> to enable the meal planner.</p></section>;
@@ -75,6 +83,7 @@ function MealPlannerContent() {
       const token = await getToken();
       const savedProfile = await api.saveProfile(token, newProfile);
       setProfile(savedProfile);
+      announceProfileName(savedProfile.name);
       setPlan(await api.generatePlan(token, savedProfile._id, getLocalDateString()));
       void refreshHistory(token, savedProfile._id);
     } catch (error) {
@@ -92,7 +101,9 @@ function MealPlannerContent() {
 
     try {
       const token = await getToken();
-      setProfile(await api.updateProfile(token, profile._id, updatedProfile));
+      const savedProfile = await api.updateProfile(token, profile._id, updatedProfile);
+      setProfile(savedProfile);
+      announceProfileName(savedProfile.name);
       setIsEditingProfile(false);
       setProfileUpdatedNotice(true);
     } catch (error) {
@@ -159,21 +170,29 @@ function MealPlannerContent() {
     {errorMessage && <p role="alert">{errorMessage}</p>}
   </>;
 
+  const completedMeals = plan?.meals.filter((meal) => meal.confirmed === true || meal.isCustom).length ?? 0;
+  const totalMeals = plan?.meals.length ?? 0;
+
   return <>
-    <section className="mb-9.5">
-      <span className="inline-flex rounded-full border border-line bg-badge px-3.5 py-2 font-sans text-[12px] font-semibold uppercase tracking-[.1em] text-accent">Today's meal plan — {formatDisplayDate(plan?.date ?? getLocalDateString())}</span>
-      <h1>Your food, mapped out.</h1>
-      <p className="text-lg leading-[1.45] text-ink-soft max-w-142.5">A flexible starting point for your {profile.goal} goal.</p>
-      <div className="flex items-center gap-6 mt-6 mb-8.75 max-[720px]:flex-wrap">
-        <button className="primary" onClick={handleGeneratePlan} disabled={isGenerating}>{isGenerating ? 'Creating…' : 'Refresh plan'}</button>
-        <button type="button" className="bg-transparent border-0 p-0 mt-2 text-accent text-[13px] font-semibold underline cursor-pointer inline-block hover:bg-transparent hover:text-accent-hover" onClick={() => setIsEditingProfile(true)}>Edit profile</button>
+    <section className="mb-9 grid grid-cols-[1fr_auto] items-end gap-10 max-[760px]:grid-cols-1 max-[760px]:gap-6">
+      <div>
+        <span className="inline-flex rounded-full border border-line bg-badge px-3.5 py-2 font-sans text-[12px] font-semibold uppercase tracking-[.1em] text-accent">Today's plan · {formatDisplayDate(plan?.date ?? getLocalDateString())}</span>
+        <h1 className="max-w-190 text-balance">Your food, mapped out.</h1>
+        <p className="mb-0 max-w-155 text-lg leading-[1.6] text-ink-soft">A practical daily structure built around your {goalLabels[profile.goal].toLowerCase()} goal. Follow it closely or adapt meals as your day changes.</p>
       </div>
-      {profileUpdatedNotice && <p>Profile updated. Refresh your plan above to recalculate today's targets.</p>}
-      {errorMessage && <p role="alert">{errorMessage}</p>}
+      <div className="flex gap-2.5 max-[480px]:grid max-[480px]:grid-cols-2">
+        <button type="button" onClick={handleGeneratePlan} disabled={isGenerating} className="rounded-full px-5 py-2.75 shadow-[0_8px_22px_rgba(0,0,0,.14)]">{isGenerating ? 'Creating…' : 'Refresh plan'}</button>
+        <button type="button" className="rounded-full border border-line-strong bg-surface px-5 py-2.75 text-sm text-ink hover:bg-hover hover:border-accent" onClick={() => setIsEditingProfile(true)}>Edit profile</button>
+      </div>
     </section>
-    {plan && <div className="mt-10">
-      <MealPlanCard plan={plan} onPlanChange={setPlan} />
-    </div>}
-    <PlanHistory history={history} />
+    <Reveal className="mb-7 grid grid-cols-3 overflow-hidden rounded-2xl border border-line bg-surface/90 shadow-[0_12px_35px_rgba(0,0,0,.08)] max-[620px]:grid-cols-1">
+      <div className="border-r border-line p-5.5 max-[620px]:border-r-0 max-[620px]:border-b"><span className="mb-1 block text-[10px] font-bold uppercase tracking-[.12em] text-ink-muted">Current goal</span><strong className="text-[15px] text-ink">{goalLabels[profile.goal]}</strong></div>
+      <div className="border-r border-line p-5.5 max-[620px]:border-r-0 max-[620px]:border-b"><span className="mb-1 block text-[10px] font-bold uppercase tracking-[.12em] text-ink-muted">Daily schedule</span><strong className="text-[15px] text-ink">{totalMeals} planned meals</strong></div>
+      <div className="p-5.5"><span className="mb-1 block text-[10px] font-bold uppercase tracking-[.12em] text-ink-muted">Today's progress</span><strong className="text-[15px] text-accent">{completedMeals} of {totalMeals} logged</strong></div>
+    </Reveal>
+    {profileUpdatedNotice && <p role="status" className="mb-6 rounded-xl border border-accent bg-badge py-3.5 px-4.5 text-sm text-accent-soft"><strong className="text-accent">Profile updated.</strong> Refresh your plan to recalculate today's targets.</p>}
+    {errorMessage && <p role="alert" className="mb-6 rounded-xl border border-poor bg-surface-alt py-3.5 px-4.5 text-poor-text">{errorMessage}</p>}
+    {plan && <Reveal delay={80}><MealPlanCard plan={plan} onPlanChange={setPlan} /></Reveal>}
+    {history.length > 0 && <Reveal delay={140}><PlanHistory history={history} /></Reveal>}
   </>;
 }

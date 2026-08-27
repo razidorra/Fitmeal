@@ -1,5 +1,24 @@
 # FitMeal change protocol
 
+## 2026-08-27 — Dashboard refresh and repository cleanup
+
+### Implemented
+
+- Rebuilt the shared header into a compact, responsive application navigation with clearer branding, active-route treatment, account access, and logout control. The signed-in identity now prefers the saved FitMeal profile name over the Clerk email and updates immediately after profile changes.
+- Closed the recipe-detail guest bypass: missing Clerk configuration no longer treats visitors as signed in, and both card interactions and direct recipe URLs now require a loaded signed-in session before rendering full details.
+- Scoped all six stored themes to the active Clerk account and made Midnight Gold the automatic signed-out/default theme.
+- Expanded Recipes into a discovery experience with ingredient-aware search, sorting, collection statistics, a featured recipe, richer cards, result feedback, and staggered scroll reveals.
+- Reworked Meal Planner into a daily dashboard with goal/schedule/progress summaries, structured nutrition targets, clearer meal details and logging actions, improved profile fields, and contained plan history.
+- Reworked Progress into a tracking dashboard with a dependency-free SVG weight chart, optional check-in context, overview metrics, limited-data guidance, rule-based review details, and a scrollable history.
+- Removed the duplicate root `pics/` source-image folder after verifying its production copies, removed the unused `@tanstack/router-devtools` dependency, and stopped tracking TypeScript build metadata.
+- Enabled `noUnusedLocals` and `noUnusedParameters` in both TypeScript workspaces so dead declarations fail the normal build.
+
+### Verification
+
+- `npm run build` succeeds for both workspaces with the stricter TypeScript settings.
+- `npm test` passes all 30 backend tests across 4 test files.
+- `git diff --check` reports no whitespace errors, and dependency/source/image references were audited after cleanup.
+
 ## 2026-08-26 — Fix local recipe/meal images 404ing on GitHub Pages
 
 ### Implemented

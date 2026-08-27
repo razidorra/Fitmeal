@@ -3,7 +3,7 @@
 ## Document status
 
 - Project stage: final feature-complete candidate
-- Last reviewed against source: 2026-08-26
+- Last reviewed against source: 2026-08-27
 - Implementation status: complete for the scope below
 - Release status: local build/test verification available; first hosted deployment and production smoke test are still pending
 
@@ -19,11 +19,11 @@ FitMeal is an educational planning aid, not a medical device or substitute for a
 
 | User state | Available behavior |
 | --- | --- |
-| Clerk not configured | Home and recipe content remain usable; planner, progress, and account screens explain that sign-in must be configured; authenticated APIs return `503` |
+| Clerk not configured | Home and recipe cards remain usable; recipe details, planner, progress, and account screens explain that sign-in must be configured; authenticated APIs return `503` |
 | Signed out | Home and recipe cards are visible; planner/check-in forms can be tried but saving prompts for sign-in; account data and assistant are unavailable |
 | Signed in | Profile, daily plans, meal logging, history, progress, account summary, recipe modal, themes, and assistant are available |
 
-The frontend recipe cards prompt signed-out visitors to sign in before opening the details modal when Clerk is configured. The retained `/recipes/:recipeSlug` deep-link route itself is not currently protected; see [Known constraints](#known-constraints).
+Recipe cards prompt signed-out visitors to sign in before opening the details modal. Direct `/recipes/:recipeSlug` links apply the same signed-in check, including configuration guidance when Clerk is missing from a deployment.
 
 ## Current scope
 
@@ -31,8 +31,8 @@ The frontend recipe cards prompt signed-out visitors to sign in before opening t
 
 1. Render a responsive, nutrition-focused home page with shared header, navigation, background treatment, and footer.
 2. Present 25 static recipes across meal, fruit, snack, dessert, and smoothie categories.
-3. Filter recipes by category and by lose, maintain, or gain goal.
-4. Show a photo, tags, preparation time, and estimated nutrition per serving.
+3. Search recipes by title, description, tag, or ingredient; filter by category and goal; and sort by recommendation, preparation time, protein, or calories.
+4. Show collection statistics, a featured recipe, result counts, photos, tags, preparation time, servings, and estimated nutrition per serving.
 5. Open ingredients, steps, health context, and nutrition in a modal for an allowed recipe-card interaction.
 6. Preserve the recipe detail route for direct links and unknown-recipe handling.
 7. Provide accessible mobile navigation and page-level error recovery.
@@ -44,7 +44,7 @@ The frontend recipe cards prompt signed-out visitors to sign in before opening t
 3. Store the Clerk user ID on profiles.
 4. Verify the owning profile before reading or mutating related meal plans or check-ins.
 5. Return `404`, rather than another user's data, when an authenticated user requests a resource they do not own.
-6. Show the signed-in identity, online indicator, Profile link, and direct Log out action in the header.
+6. Show the signed-in identity, account link, and direct Log out action in the header.
 
 ### Profile and targets
 
@@ -65,6 +65,7 @@ The frontend recipe cards prompt signed-out visitors to sign in before opening t
 6. Let **Refresh plan** replace the current dated plan intentionally.
 7. Mark Sundays with `isCheatDay: true` and render a free-choice experience without fixed menu controls or displayed meal totals.
 8. Keep a recent history (14 days by default, 60 maximum) grouped into this week and previous week.
+9. Present the current plan as a responsive dashboard with goal, schedule, logging progress, nutrition targets, and expandable meal details.
 
 ### Meal logging
 
@@ -77,12 +78,13 @@ The frontend recipe cards prompt signed-out visitors to sign in before opening t
 
 ### Progress
 
-1. Record validated weight check-ins against an owned profile and show them chronologically.
+1. Record validated weight check-ins with optional context notes against an owned profile and show them chronologically.
 2. Compare the first and latest weights and calculate a weekly rate when at least two dated check-ins exist.
 3. Decide whether the direction is on track for lose, maintain, or gain using fixed rules.
 4. Include confirmed and changed meal counts from the latest plan.
 5. Generate a deterministic written review from those statistics without AI.
 6. Require two check-ins before presenting a directional verdict.
+7. Plot stored measurements in a theme-aware trend chart and explain that individual readings can vary with timing and hydration.
 
 ### Assistant
 
@@ -98,7 +100,7 @@ The frontend recipe cards prompt signed-out visitors to sign in before opening t
 
 1. Show Clerk identity plus today's plan and last-seven-days check-in summaries on `/account`.
 2. Offer Midnight Gold, Warm Light, Rose Pink, Ocean Blue, Forest Green, and Slate Gray themes.
-3. Store the selected theme in `localStorage` and apply it across routes.
+3. Store the selected theme per Clerk account in `localStorage`, restore it when that account signs in, and return signed-out pages to Midnight Gold.
 4. Use theme-backed Tailwind utilities for application colors, with the fixed-color phone mockup as the only documented design exception.
 5. Keep shared navigation and footer usable when routed page content throws.
 
@@ -202,7 +204,7 @@ Protected endpoints return `401` for no session and `503` when backend Clerk con
 ## Known constraints
 
 - There is no automated frontend test runner; frontend verification relies on the strict production build and manual/browser checks.
-- Recipe-card interactions are sign-in-gated when Clerk is enabled, but the retained `/recipes/:recipeSlug` route does not enforce that gate. This is a presentation gate, not a security boundary.
+- Recipe-card interactions and direct detail routes are sign-in-gated in the UI. Static recipe data still ships in the public frontend bundle, so this is not a security boundary for sensitive information.
 - CORS currently allows all origins. This is convenient for separate preview hosts but should be restricted to the production frontend origin for a hardened release.
 - Plan uniqueness is implemented with route-level get-or-create logic rather than a compound unique database index, so simultaneous first requests for the same profile/date could race.
 - Multiple profiles can be created for one Clerk user; the application uses the latest profile rather than enforcing one profile per account.

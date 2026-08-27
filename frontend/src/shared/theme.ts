@@ -5,10 +5,12 @@
 export type Theme = 'dark' | 'light' | 'rose' | 'ocean' | 'forest' | 'slate';
 
 const THEMES: Theme[] = ['dark', 'light', 'rose', 'ocean', 'forest', 'slate'];
-const STORAGE_KEY = 'fitmeal-theme';
+const STORAGE_KEY_PREFIX = 'fitmeal-theme';
 
-export function getStoredTheme(): Theme {
-  const stored = localStorage.getItem(STORAGE_KEY);
+export function getStoredTheme(userId?: string): Theme {
+  if (!userId) return 'dark';
+
+  const stored = localStorage.getItem(`${STORAGE_KEY_PREFIX}:${userId}`);
   return (THEMES as string[]).includes(stored ?? '') ? (stored as Theme) : 'dark';
 }
 
@@ -20,7 +22,7 @@ export function applyTheme(theme: Theme) {
   }
 }
 
-export function setTheme(theme: Theme) {
-  localStorage.setItem(STORAGE_KEY, theme);
+export function setTheme(userId: string, theme: Theme) {
+  localStorage.setItem(`${STORAGE_KEY_PREFIX}:${userId}`, theme);
   applyTheme(theme);
 }

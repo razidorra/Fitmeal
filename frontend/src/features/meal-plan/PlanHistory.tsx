@@ -26,12 +26,13 @@ function summarizeDay(plan: MealPlan) {
 function DayRow({ plan, isExpanded, onToggle }: { plan: MealPlan; isExpanded: boolean; onToggle: () => void }) {
   const summary = summarizeDay(plan);
 
-  return <div className="overflow-hidden rounded-xl bg-surface border border-line mb-2">
-    <button type="button" className="grid grid-cols-[1.2fr_auto_auto_auto] max-[720px]:grid-cols-2 gap-4 max-[720px]:gap-y-1.5 w-full rounded-none py-3.5 px-4.5 bg-transparent border-0 text-ink text-left cursor-pointer items-center font-sans text-sm hover:bg-input hover:translate-y-0" onClick={onToggle}>
-      <span className="font-semibold">{formatDisplayDate(plan.date)}</span>
+  return <div className="mb-2 overflow-hidden rounded-xl border border-line bg-surface">
+    <button type="button" aria-expanded={isExpanded} className="grid w-full grid-cols-[1.2fr_auto_auto_auto_24px] items-center gap-4 rounded-none border-0 bg-transparent py-4 px-4.5 text-left font-sans text-sm text-ink hover:translate-y-0 hover:bg-input max-[720px]:grid-cols-2 max-[720px]:gap-y-2" onClick={onToggle}>
+      <span><strong className="block font-semibold">{formatDisplayDate(plan.date)}</strong><small className="text-[10px] uppercase tracking-wider text-ink-muted">Daily plan</small></span>
       <span className={`text-xs py-1 px-2.5 border justify-self-start rounded-[20px] ${verdictBadgeClass[summary.tone]}`}>{summary.label}</span>
       <span>{plan.isCheatDay ? '—' : `${sum(plan, 'calories')} kcal`}</span>
       <span>{plan.isCheatDay ? '—' : `${sum(plan, 'protein')}g protein`}</span>
+      <span className="text-center text-accent max-[720px]:hidden" aria-hidden="true">{isExpanded ? '↑' : '↓'}</span>
     </button>
     {isExpanded && <div className="mx-4.5 px-4.5 pb-4 pt-3 border-t border-line text-ink-soft text-[13px] grid gap-2.5">
       {plan.isCheatDay
@@ -52,8 +53,11 @@ export function PlanHistory({ history }: { history: MealPlan[] }) {
   const thisWeek = history.filter((plan) => plan.date >= thisWeekStart);
   const previousWeek = history.filter((plan) => plan.date < thisWeekStart);
 
-  return <section className="mt-9">
-    <h2>Your week</h2>
+  return <section className="mt-9 rounded-2xl border border-line bg-surface-alt p-6.5 shadow-[0_12px_35px_rgba(0,0,0,.08)] max-[560px]:p-4.5">
+    <div className="mb-5 flex items-end justify-between gap-4 max-[560px]:items-start max-[560px]:flex-col max-[560px]:gap-1">
+      <div><span className="text-[10px] font-bold uppercase tracking-[.12em] text-accent">Plan history</span><h2 className="mb-0 mt-1 text-[27px]">Your recent days</h2></div>
+      <span className="text-xs text-ink-muted">{history.length} saved plan{history.length === 1 ? '' : 's'}</span>
+    </div>
     {thisWeek.length > 0 && <div className="mt-4.5">
       <h3 className="text-[15px] text-accent mt-0 mb-2.5 font-semibold">This week</h3>
       {thisWeek.map((plan) => <DayRow key={plan._id} plan={plan} isExpanded={expandedId === plan._id} onToggle={() => setExpandedId(expandedId === plan._id ? null : plan._id)} />)}

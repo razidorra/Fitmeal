@@ -42,8 +42,8 @@ function AccountContent() {
   const [theme, setThemeState] = useState<Theme>('dark');
 
   useEffect(() => {
-    setThemeState(getStoredTheme());
-  }, []);
+    setThemeState(getStoredTheme(user?.id));
+  }, [user?.id]);
 
   useEffect(() => {
     if (!authLoaded) return;
@@ -76,7 +76,8 @@ function AccountContent() {
   }, [authLoaded, isSignedIn, getToken]);
 
   function handleThemeChange(next: Theme) {
-    setTheme(next);
+    if (!user) return;
+    setTheme(user.id, next);
     setThemeState(next);
   }
 
@@ -149,7 +150,7 @@ function AccountContent() {
     <div className="rounded-2xl py-6.5 px-7 border border-line bg-surface shadow-[0_18px_50px_rgba(0,0,0,.1)]">
       <span className="uppercase tracking-wider font-sans font-semibold text-[11px] text-accent">Appearance</span>
       <h2 className="font-display font-semibold text-[22px] mt-1.5 mb-4">Website theme</h2>
-      <p className="text-ink-soft mb-4.5">Your choice is saved on this device and applied across FitMeal.</p>
+      <p className="text-ink-soft mb-4.5">Your choice is saved for this account on this device and applied across FitMeal.</p>
       <div className="grid grid-cols-3 max-[720px]:grid-cols-1 gap-3.5">
         {themeOptions.map((option) => <button key={option.value} type="button" className={`flex items-center gap-3.5 rounded-xl py-4 px-5 border bg-surface-alt text-ink font-semibold hover:bg-hover hover:border-line-strong ${theme === option.value ? 'border-accent shadow-[0_0_0_2px_var(--bg-badge)]' : 'border-line-strong'}`} onClick={() => handleThemeChange(option.value)}>
           <span aria-hidden="true" className="relative w-8.5 h-5 shrink-0">

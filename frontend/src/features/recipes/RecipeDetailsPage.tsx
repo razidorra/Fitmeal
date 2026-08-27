@@ -1,8 +1,36 @@
 import { Link, useParams } from '@tanstack/react-router';
+import { SignInButton, SignUpButton, useAuth } from '@clerk/react';
 import { goalLabels, recipes } from './recipes';
 import { resolveImage } from '../../shared/assets';
+import { isClerkConfigured } from '../../shared/clerk';
+import { PageLoading } from '../../shared/components/PageLoading';
 
 export function RecipeDetailsPage() {
+  if (!isClerkConfigured) return <RecipeSignInRequired isAuthConfigured={false} />;
+  return <AuthenticatedRecipeDetailsPage />;
+}
+
+function AuthenticatedRecipeDetailsPage() {
+  const { isLoaded, isSignedIn } = useAuth();
+
+  if (!isLoaded) return <PageLoading label="Checking recipe access" />;
+  if (!isSignedIn) return <RecipeSignInRequired isAuthConfigured />;
+
+  return <RecipeDetails />;
+}
+
+function RecipeSignInRequired({ isAuthConfigured }: { isAuthConfigured: boolean }) {
+  return <section className="mx-auto max-w-160 rounded-3xl border border-line bg-surface py-16 px-8 text-center shadow-[0_20px_60px_rgba(0,0,0,.12)]">
+    <span className="inline-flex rounded-full border border-line bg-badge px-3.5 py-2 text-[11px] font-bold uppercase tracking-[.1em] text-accent">Members only</span>
+    <h1 className="text-[clamp(40px,5vw,60px)]">Sign in to view recipe details.</h1>
+    <p className="mx-auto mb-7 max-w-125 text-ink-soft">{isAuthConfigured ? 'Create a free account to access ingredients, preparation steps, and complete nutrition information.' : 'Sign-in is not configured on this deployment yet. Add the Clerk publishable key and redeploy the frontend.'}</p>
+    {isAuthConfigured
+      ? <div className="flex justify-center gap-3 max-[420px]:flex-col"><SignInButton><button>Log in</button></SignInButton><SignUpButton><button>Sign up</button></SignUpButton></div>
+      : <Link to="/recipes" className="primary">Back to recipes</Link>}
+  </section>;
+}
+
+function RecipeDetails() {
   const { recipeSlug } = useParams({ from: '/recipes/$recipeSlug' });
   const recipe = recipes.find((item) => item.slug === recipeSlug);
 

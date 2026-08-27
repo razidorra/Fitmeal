@@ -1,15 +1,16 @@
 import React, { useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
 import { RouterProvider } from '@tanstack/react-router';
-import { ClerkProvider } from '@clerk/react';
+import { ClerkProvider, useUser } from '@clerk/react';
 import { router } from './routes/router';
 import { applyTheme, getStoredTheme } from './shared/theme';
 import { resolveImage } from './shared/assets';
 import { ErrorBoundary } from './shared/components/ErrorBoundary';
 import './styles.css';
 
-// Applied synchronously before the first paint, so there's no flash of the wrong theme on load.
-applyTheme(getStoredTheme());
+// Signed-out visitors always start in Midnight Gold. Once Clerk loads, ThemeSync below restores
+// the preference belonging to the current account.
+applyTheme('dark');
 
 // styles.css can't reach import.meta.env.BASE_URL itself (it's a static asset, not processed as a
 // module), so the whole-site background photo's URL is resolved here instead and handed to it
@@ -32,13 +33,26 @@ function ScrollToTopOnLoad() {
   return null;
 }
 
+function ThemeSync() {
+  const { isLoaded, user } = useUser();
+
+  useEffect(() => {
+    if (!isLoaded) return;
+    applyTheme(getStoredTheme(user?.id));
+  }, [isLoaded, user?.id]);
+
+  return null;
+}
+
 function App() {
   const appContent = <>
     <ScrollToTopOnLoad />
     <RouterProvider router={router} />
   </>;
 
-  return clerkPublishableKey ? <ClerkProvider publishableKey={clerkPublishableKey}>{appContent}</ClerkProvider> : appContent;
+  return clerkPublishableKey
+    ? <ClerkProvider publishableKey={clerkPublishableKey}><ThemeSync />{appContent}</ClerkProvider>
+    : appContent;
 }
 
 ReactDOM.createRoot(document.getElementById('root')!).render(

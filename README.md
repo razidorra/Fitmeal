@@ -8,16 +8,16 @@ FitMeal is an educational planning aid. Nutrition values are estimates and the a
 
 ## Features
 
-- Public home page and a responsive recipe collection with 25 recipes, category/goal filters, nutrition estimates, and an optional sign-in prompt before opening the detail modal.
-- Clerk authentication with a custom account summary, visible sign-out control, and per-user data ownership.
+- Public home page and a responsive 25-recipe collection with search, goal/category filters, sorting, a featured recipe, nutrition details, and an optional sign-in prompt before opening the detail modal.
+- Clerk authentication with a custom account summary, polished account navigation, visible sign-out control, and per-user data ownership.
 - Editable nutrition profile with calorie and macro targets calculated from the Mifflin-St Jeor formula.
 - One persisted meal plan per local calendar day, deterministic menu variety, goal-specific choices, manual refresh, and a Sunday free-choice day.
 - Per-meal confirmation or free-text replacement while preserving the original suggestion and recipe details.
 - Two-week plan history grouped into this week and the previous week.
-- Weight check-ins and a deterministic progress review based on weight direction and the latest meal log.
+- A progress dashboard with optional check-in context, a theme-aware weight chart, history, and a deterministic review based on weight direction and the latest meal log.
 - Groq-powered assistant chat in the Meal Planner and in a floating site-wide panel for signed-in users.
 - Clearly labelled offline assistant guidance when Groq is unavailable or not configured.
-- Six device-persisted visual themes and responsive desktop/mobile navigation.
+- Six account-specific visual themes stored on the current device; signed-out pages return to Midnight Gold automatically.
 - Page-level error boundaries plus loading, empty, guest, and error states for asynchronous screens.
 
 ## Technology
@@ -98,15 +98,15 @@ The canonical backend environment file is `backend/.env`. `backend/src/.env` is 
 
 | Variable | Required | Purpose |
 | --- | --- | --- |
-| `VITE_CLERK_PUBLISHABLE_KEY` | Yes for account features | Enables Clerk UI and authenticated requests |
+| `VITE_CLERK_PUBLISHABLE_KEY` | Yes for account and recipe-detail features | Enables Clerk UI, recipe-detail gating, and authenticated requests |
 | `VITE_API_PROXY_TARGET` | No | Local Vite proxy target; defaults to `http://localhost:4000` |
 | `VITE_API_URL` | Production only | Public API base URL including `/api` |
 
-Use the same Clerk application on the frontend and backend. If Clerk is not configured, public pages and recipe details remain available, while planner, progress, account, and assistant features show configuration guidance. If only one side is configured, authenticated data requests cannot work correctly.
+Use the same Clerk application on the frontend and backend. If Clerk is not configured, the home page and recipe collection remain visible, but recipe details, planner, progress, account, and assistant features show configuration guidance. If only one side is configured, authenticated data requests cannot work correctly.
 
 Never commit `.env` files, database credentials, Clerk secrets, or API keys.
 
-The recipe-card sign-in prompt is a UI gate, not access control: the retained `/recipes/:recipeSlug` deep-link route remains public. See the specification's known constraints for this and the other remaining hardening items.
+Recipe cards and direct `/recipes/:recipeSlug` links both require a signed-in Clerk session before rendering full details. Because the static recipe data ships in the frontend bundle, this is a product-access gate rather than protection for sensitive information.
 
 ## How meal planning works
 
