@@ -45,6 +45,7 @@ export async function askGroq(systemInstruction: string, messages: GroqMessage[]
     response = await callWithRetry({
       model: env.groqModel,
       messages: [{ role: 'system', content: systemInstruction }, ...messages],
+      max_completion_tokens: 400,
       ...(json ? { response_format: { type: 'json_object' } } : {}),
     }, AbortSignal.timeout(12_000));
   } catch (error) {

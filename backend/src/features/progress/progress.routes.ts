@@ -4,6 +4,7 @@ import { Checkin } from './checkin.model.js';
 import { MealPlan } from '../meal-plan/meal-plan.model.js';
 import { findOwnedProfile } from '../../shared/ownership.js';
 import { requireUserId } from '../../shared/auth.js';
+import { trimmedText } from '../../shared/validation.js';
 
 export const progressRouter = Router();
 
@@ -15,7 +16,8 @@ progressRouter.get('/:profileId', async (req, res, next) => {
     const profile = await findOwnedProfile(req.params.profileId, userId);
     if (!profile) { res.status(404).json({ message: 'Profile not found' }); return; }
 
-    res.json(await Checkin.find({ profileId: req.params.profileId }).sort({ date: 1 }));
+    const checkins = await Checkin.find({ profileId: req.params.profileId }).sort({ date: -1 }).limit(365);
+    res.json(checkins.reverse());
   } catch (error) {
     next(error);
   }
@@ -26,7 +28,11 @@ progressRouter.post('/', async (req, res, next) => {
     const userId = requireUserId(req, res);
     if (!userId) return;
 
-    const data = z.object({ profileId: z.string(), weightKg: z.number().min(30).max(350), note: z.string().max(300).optional() }).parse(req.body);
+    const data = z.object({
+      profileId: z.string().min(1),
+      weightKg: z.number().min(30).max(350),
+      note: trimmedText(1, 300).optional(),
+    }).strict().parse(req.body);
     const profile = await findOwnedProfile(data.profileId, userId);
     if (!profile) { res.status(404).json({ message: 'Profile not found' }); return; }
 
@@ -95,16 +101,22 @@ progressRouter.post('/:profileId/review', async (req, res, next) => {
     const profile = await findOwnedProfile(req.params.profileId, userId);
     if (!profile) { res.status(404).json({ message: 'Profile not found' }); return; }
 
-    const checkins = await Checkin.find({ profileId: req.params.profileId }).sort({ date: 1 });
+    const checkins = (await Checkin.find({ profileId: req.params.profileId }).sort({ date: -1 }).limit(365)).reverse();
     const latestPlan = await MealPlan.findOne({ profileId: req.params.profileId }).sort({ createdAt: -1 });
 
-    const firstWeight = checkins[0]?.get('weightKg') ?? profile.weightKg;
-    const latestWeight = checkins.at(-1)?.get('weightKg') ?? profile.weightKg;
+    const firstWeight = checkins[0]?.weightKg ?? profile.weightKg;
+    const latestWeight = checkins.at(-1)?.weightKg ?? profile.weightKg;
     const totalChangeKg = Number((latestWeight - firstWeight).toFixed(1));
 
     let weeklyRateKg: number | null = null;
-    if (checkins.length >= 2) {
-      const daysTracked = Math.max(1, (checkins.at(-1)!.get('date').getTime() - checkins[0].get('date').getTime()) / 86_400_000);
+    const firstCheckinDate = checkins[0]?.date;
+    const latestCheckinDate = checkins.at(-1)?.date;
+    const hasMultipleDays = firstCheckinDate && latestCheckinDate
+      ? firstCheckinDate.toISOString().slice(0, 10) !== latestCheckinDate.toISOString().slice(0, 10)
+      : false;
+
+    if (hasMultipleDays && firstCheckinDate && latestCheckinDate) {
+      const daysTracked = Math.max(1, (latestCheckinDate.getTime() - firstCheckinDate.getTime()) / 86_400_000);
       weeklyRateKg = Number((totalChangeKg / (daysTracked / 7)).toFixed(2));
     }
 
@@ -115,14 +127,14 @@ progressRouter.post('/:profileId/review', async (req, res, next) => {
       onTrack = goal === 'maintain' ? Math.abs(weeklyRateKg) < 0.3 : weeklyRateKg * goalDirection > 0.05;
     }
 
-    const meals = (latestPlan?.get('meals') as Array<Record<string, unknown>>) ?? [];
+    const meals = latestPlan?.meals ?? [];
     const confirmedMealCount = meals.filter((meal) => meal.confirmed === true).length;
     const changedMealCount = meals.filter((meal) => meal.isCustom === true).length;
     const loggedMealCount = confirmedMealCount + changedMealCount;
 
     const stats: ReviewStats = {
       goal, totalChangeKg, weeklyRateKg,
-      checkinCount: checkins.length, onTrack: checkins.length >= 2 ? onTrack : null,
+      checkinCount: checkins.length, onTrack: hasMultipleDays ? onTrack : null,
       loggedMealCount, confirmedMealCount, changedMealCount,
     };
 

@@ -5,6 +5,7 @@ export interface MealPlan {
   _id: string;
   date: string;
   isCheatDay?: boolean;
+  nutritionBasis: 'target-budget';
   targets: { calories: number; protein: number; carbs: number; fats: number };
   meals: { time: string; title: string; originalTitle?: string; ingredients: string; image?: string; originalImage?: string; calories: number; protein: number; carbs?: number; fats?: number; isCustom?: boolean; confirmed?: boolean | null; verdict?: MealVerdict; note?: string; ingredientsList?: string[]; steps?: string[]; originalIngredientsList?: string[]; originalSteps?: string[] }[];
 }

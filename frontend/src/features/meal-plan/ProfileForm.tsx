@@ -26,7 +26,7 @@ export function ProfileForm({ onSave, isSaving, initialProfile, submitLabel = 'S
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    onSave({ name, age, sex, heightCm, weightKg, activity, goal });
+    onSave({ name: name.trim(), age, sex, heightCm, weightKg, activity, goal });
   }
 
   const labelClass = 'text-[12px] font-semibold text-ink-soft grid gap-2';
@@ -37,14 +37,15 @@ export function ProfileForm({ onSave, isSaving, initialProfile, submitLabel = 'S
       <h2 className="mb-2 mt-1 text-[26px]">Profile and nutrition goal</h2>
       <p className="m-0 max-w-165 text-sm leading-[1.55] text-ink-soft">These details are used to estimate your daily calorie and macro targets. You can update them whenever your routine changes.</p>
     </div>
-    <label className={labelClass}>Name<input value={name} onChange={(event) => setName(event.target.value)} required /></label>
+    <label className={labelClass}>Name<input value={name} onChange={(event) => setName(event.target.value)} minLength={1} maxLength={80} required /></label>
     <label className={labelClass}>Age<input type="number" min={16} max={100} value={age} onChange={(event) => setAge(Number(event.target.value))} required /></label>
-    <label className={labelClass}>Sex
-      <select value={sex} onChange={(event) => setSex(event.target.value as Profile['sex'])}>
-        <option value="female">Female</option>
-        <option value="male">Male</option>
-        <option value="other">Other</option>
+    <label className={labelClass}>Calorie equation
+      <select value={sex} onChange={(event) => setSex(event.target.value as Profile['sex'])} aria-describedby="calorie-equation-help">
+        <option value="female">Female equation (−161)</option>
+        <option value="male">Male equation (+5)</option>
+        <option value="other">Other / prefer not to say (uses −161)</option>
       </select>
+      <span id="calorie-equation-help" className="text-[11px] font-normal leading-[1.45] text-ink-muted">Mifflin–St Jeor defines only these two constants. Choose the estimate you prefer; this is not used as a gender-identity field.</span>
     </label>
     <label className={labelClass}>Height (cm)<input type="number" min={100} max={250} value={heightCm} onChange={(event) => setHeightCm(Number(event.target.value))} required /></label>
     <label className={labelClass}>Weight (kg)<input type="number" min={30} max={350} value={weightKg} onChange={(event) => setWeightKg(Number(event.target.value))} required /></label>

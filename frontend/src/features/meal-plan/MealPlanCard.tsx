@@ -30,7 +30,7 @@ export function MealPlanCard({ plan, onPlanChange }: { plan: MealPlan; onPlanCha
   if (plan.isCheatDay) {
     return <section className="rounded-3xl bg-surface-alt border border-line-strong p-9 text-center shadow-[0_18px_50px_rgba(0,0,0,.1)]">
       <span className="text-4xl" aria-hidden="true">🎉</span>
-      <h2 className="mt-3 mb-2">It's your cheat day!</h2>
+      <h2 className="mt-3 mb-2">It's your flex day!</h2>
       <p className="text-ink-soft max-w-125 mx-auto leading-normal">Eat what you enjoy today — no fixed menu, no calorie targets to hit. A planned treat is part of a sustainable plan, not a setback. Your regular meal plan is back tomorrow.</p>
     </section>;
   }
@@ -91,7 +91,7 @@ export function MealPlanCard({ plan, onPlanChange }: { plan: MealPlan; onPlanCha
     <section className="overflow-hidden rounded-2xl bg-surface border border-line shadow-[0_18px_50px_rgba(0,0,0,.1)]">
       <div className="flex items-end justify-between border-b border-line px-6.5 py-5 max-[520px]:items-start max-[520px]:flex-col max-[520px]:gap-1">
         <div><span className="text-[10px] font-bold uppercase tracking-[.12em] text-accent">Meal schedule</span><h2 className="mb-0 mt-1 text-[26px]">Today's menu</h2></div>
-        <span className="text-xs text-ink-muted">Select a meal for ingredients and steps</span>
+        <span className="max-w-85 text-right text-xs leading-[1.45] text-ink-muted max-[520px]:text-left">Ingredient quantities are meal ideas. Calories and protein are target budgets—adjust portions to suit them.</span>
       </div>
       {plan.meals.map((meal) => {
         const detailIngredients = meal.isCustom ? meal.originalIngredientsList : meal.ingredientsList;
@@ -140,7 +140,8 @@ export function MealPlanCard({ plan, onPlanChange }: { plan: MealPlan; onPlanCha
             {!meal.isCustom && meal.confirmed === true && <p className="text-good-text text-[13px] font-semibold mt-2">✓ As planned</p>}
 
             {swappingTime === meal.time && <form className="flex gap-2 mt-3 max-[560px]:flex-col" onSubmit={(event) => handleSwap(event, meal.time)}>
-              <input value={description} onChange={(event) => setDescription(event.target.value)} placeholder="e.g. Grilled cheese sandwich with fries" disabled={isSaving} autoFocus className="flex-1 text-sm p-2.25" />
+              <label htmlFor={`replacement-${meal.time}`} className="sr-only">What did you have instead of {meal.title}?</label>
+              <input id={`replacement-${meal.time}`} maxLength={300} value={description} onChange={(event) => setDescription(event.target.value)} placeholder="e.g. Grilled cheese sandwich with fries" disabled={isSaving} autoFocus className="flex-1 text-sm p-2.25" />
               <button type="submit" className="px-3.5 py-2.25 text-[13px]" disabled={isSaving}>{isSaving ? 'Saving…' : 'Save'}</button>
               <button type="button" className="px-3.5 py-2.25 text-[13px]" onClick={() => setSwappingTime(null)} disabled={isSaving}>Cancel</button>
             </form>}
@@ -148,8 +149,8 @@ export function MealPlanCard({ plan, onPlanChange }: { plan: MealPlan; onPlanCha
             {errorTime === meal.time && <p role="alert">{errorMessage}</p>}
           </div>
           <div className="grid min-w-25 gap-2 text-right max-[720px]:col-start-2 max-[720px]:text-left max-[520px]:col-start-auto max-[520px]:grid-cols-2">
-            <div className="rounded-xl border border-line bg-surface-alt px-3.5 py-2.5"><strong className="block text-sm text-ink">{meal.calories}</strong><span className="text-[10px] uppercase tracking-wider text-ink-muted">kcal</span></div>
-            <div className="rounded-xl border border-line bg-surface-alt px-3.5 py-2.5"><strong className="block text-sm text-ink">{meal.protein}g</strong><span className="text-[10px] uppercase tracking-wider text-ink-muted">protein</span></div>
+            <div className="rounded-xl border border-line bg-surface-alt px-3.5 py-2.5"><strong className="block text-sm text-ink">{meal.calories}</strong><span className="text-[10px] uppercase tracking-wider text-ink-muted">kcal budget</span></div>
+            <div className="rounded-xl border border-line bg-surface-alt px-3.5 py-2.5"><strong className="block text-sm text-ink">{meal.protein}g</strong><span className="text-[10px] uppercase tracking-wider text-ink-muted">protein budget</span></div>
           </div>
         </article>;
       })}

@@ -1,12 +1,23 @@
 {
   "name": "fitmeal",
   "private": true,
-  "workspaces": ["frontend", "backend"],
+  "engines": {
+    "node": ">=20 <23"
+  },
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
   "scripts": {
     "dev": "concurrently \"npm run dev -w frontend\" \"npm run dev -w backend\"",
     "build": "npm run build -w frontend && npm run build -w backend",
     "start": "npm run start -w backend",
-    "test": "npm run test -w backend"
+    "test": "npm run test -w frontend && npm run test -w backend",
+    "test:e2e": "playwright test"
   },
-  "devDependencies": { "concurrently": "^9.1.2" }
+  "devDependencies": {
+    "@clerk/testing": "^2.2.33",
+    "@playwright/test": "^1.62.1",
+    "concurrently": "^9.1.2"
+  }
 }

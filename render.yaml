@@ -10,17 +10,21 @@ services:
     runtime: node
     plan: free
     rootDir: .
-    buildCommand: npm install && npm run build -w backend
+    buildCommand: npm ci && npm run build -w backend
     startCommand: npm run start
     healthCheckPath: /api/health
     envVars:
       - key: PORT
         value: 4000
+      - key: NODE_ENV
+        value: production
       - key: MONGODB_URI
         sync: false
       - key: CLERK_PUBLISHABLE_KEY
         sync: false
       - key: CLERK_SECRET_KEY
+        sync: false
+      - key: CORS_ORIGINS
         sync: false
       - key: GROQ_API_KEY
         sync: false
@@ -32,7 +36,7 @@ services:
     runtime: static
     plan: free
     rootDir: .
-    buildCommand: npm install && npm run build -w frontend
+    buildCommand: npm ci && npm run build -w frontend
     staticPublishPath: frontend/dist
     envVars:
       # Set once you know the API service's real Render URL (shown on its dashboard page after

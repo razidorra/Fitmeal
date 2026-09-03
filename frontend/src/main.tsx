@@ -19,20 +19,6 @@ document.documentElement.style.setProperty('--bg-photo', `url('${resolveImage('/
 
 const clerkPublishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
-function ScrollToTopOnLoad() {
-  useEffect(() => {
-    const previousScrollRestoration = window.history.scrollRestoration;
-    window.history.scrollRestoration = 'manual';
-    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-
-    return () => {
-      window.history.scrollRestoration = previousScrollRestoration;
-    };
-  }, []);
-
-  return null;
-}
-
 function ThemeSync() {
   const { isLoaded, user } = useUser();
 
@@ -45,10 +31,7 @@ function ThemeSync() {
 }
 
 function App() {
-  const appContent = <>
-    <ScrollToTopOnLoad />
-    <RouterProvider router={router} />
-  </>;
+  const appContent = <RouterProvider router={router} />;
 
   return clerkPublishableKey
     ? <ClerkProvider publishableKey={clerkPublishableKey}><ThemeSync />{appContent}</ClerkProvider>

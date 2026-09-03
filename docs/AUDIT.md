@@ -1,5 +1,26 @@
 # FitMeal change protocol
 
+## 2026-09-03 — Production hardening and automated frontend coverage
+
+### Implemented
+
+- Replaced the minimal HTML fragment with a standards-mode, mobile-ready document including language, search/social metadata, theme color, and a custom SVG favicon.
+- Made production configuration fail fast: Pages validates its API and Clerk variables, the API validates required production secrets and CORS origins, and blank frontend API values safely fall back during local development.
+- Added Helmet security headers, general and assistant-specific rate limits, a request-size limit, production CORS allowlisting, structured validation errors, generic internal errors, JSON API 404s, and a MongoDB-aware readiness endpoint.
+- Added strict request validation, bounded assistant history/output, typed Mongoose sub-schemas, one-profile-per-account enforcement, and a compound unique plan index.
+- Clarified that meal-level numbers are target budgets, required different-day check-ins for trend verdicts, added an accessible not-found screen, restored route scroll position, reset page error boundaries on navigation, and improved dialog/input focus semantics.
+- Added frontend Vitest/Testing Library coverage for filters, forms, guest states, modal focus, failures, and meal interactions. Added public and credential-gated authenticated Playwright journeys; CI builds/tests both workspaces and runs the public browser suite. Render builds now use `npm ci` and the supported Node range is explicit.
+- Made the Mifflin–St Jeor equation choice explicit: the form names both published constants and documents that “Other / prefer not to say” uses the −161 equation instead of relying on an invisible fallback.
+- Upgraded the API to Express 5.2 and refreshed `qs` to its patched release after the new browser-testing dependencies exposed current registry advisories.
+- Added an owned cascade-deletion API and a two-step Account privacy control for removing a user's FitMeal profile, plans, and check-ins while leaving their Clerk identity intact. Added route and React interaction coverage and made the authenticated browser journey clean up its test data.
+- Reworked the README as a portfolio handoff with a verified live-demo link, CI badge, architecture diagram, three real responsive screenshots, guided demo paths, privacy notes, project lessons, author/contact details, and an explicit license status.
+
+### Verification
+
+- `npm run build` and `npm test` pass for both workspaces.
+- `npm audit` reports no known dependency vulnerabilities.
+- The GitHub Pages build resolves application assets and the favicon under `/Fitmeal/`.
+
 ## 2026-08-27 — Dashboard refresh and repository cleanup
 
 ### Implemented

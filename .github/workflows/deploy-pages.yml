@@ -30,6 +30,23 @@ jobs:
 
       - run: npm ci
 
+      - name: Verify release
+        run: npm run build && npm test
+
+      - name: Validate production configuration
+        env:
+          VITE_API_URL: ${{ vars.VITE_API_URL }}
+          VITE_CLERK_PUBLISHABLE_KEY: ${{ vars.VITE_CLERK_PUBLISHABLE_KEY }}
+        run: |
+          if [[ -z "$VITE_API_URL" || -z "$VITE_CLERK_PUBLISHABLE_KEY" ]]; then
+            echo "VITE_API_URL and VITE_CLERK_PUBLISHABLE_KEY must be configured as repository variables."
+            exit 1
+          fi
+          if [[ "$VITE_API_URL" != https://*/api ]]; then
+            echo "VITE_API_URL must be an HTTPS URL ending in /api."
+            exit 1
+          fi
+
       - name: Build frontend
         env:
           GITHUB_PAGES: "true"

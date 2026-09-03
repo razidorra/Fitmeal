@@ -1,6 +1,10 @@
 import type { ChatMessage, Checkin, MealPlan, Profile, ProgressReview } from './types';
 
-const apiBaseUrl = (import.meta.env.VITE_API_URL ?? '/api').replace(/\/$/, '');
+export function getApiBaseUrl(configuredUrl: string | undefined = import.meta.env.VITE_API_URL): string {
+  return (configuredUrl?.trim() || '/api').replace(/\/$/, '');
+}
+
+const apiBaseUrl = getApiBaseUrl();
 
 async function request<T>(token: string | null, path: string, options?: RequestInit): Promise<T> {
   const response = await fetch(`${apiBaseUrl}${path}`, {
@@ -17,6 +21,7 @@ async function request<T>(token: string | null, path: string, options?: RequestI
     throw new Error(errorBody?.message ?? 'Something went wrong. Please try again.');
   }
 
+  if (response.status === 204) return undefined as T;
   return response.json() as Promise<T>;
 }
 
@@ -26,6 +31,7 @@ export const api = {
   getProfile: (token: string | null) => request<Profile | null>(token, '/profiles/latest'),
   saveProfile: (token: string | null, profile: Omit<Profile, '_id'>) => request<Profile>(token, '/profiles', { method: 'POST', body: JSON.stringify(profile) }),
   updateProfile: (token: string | null, profileId: string, profile: Omit<Profile, '_id'>) => request<Profile>(token, `/profiles/${profileId}`, { method: 'PATCH', body: JSON.stringify(profile) }),
+  deleteProfile: (token: string | null, profileId: string) => request<void>(token, `/profiles/${profileId}`, { method: 'DELETE' }),
   getPlan: (token: string | null, profileId: string) => request<MealPlan | null>(token, `/meal-plans/latest/${profileId}`),
   generatePlan: (token: string | null, profileId: string, date: string, regenerate = false) => request<MealPlan>(token, `/meal-plans/generate/${profileId}`, { method: 'POST', body: JSON.stringify({ date, regenerate }) }),
   getPlanHistory: (token: string | null, profileId: string, days = 14) => request<MealPlan[]>(token, `/meal-plans/${profileId}/history?days=${days}`),

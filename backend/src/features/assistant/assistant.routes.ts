@@ -3,11 +3,15 @@ import { z } from 'zod';
 import { askGroq, GroqError } from '../../shared/groq.js';
 import { requireUserId } from '../../shared/auth.js';
 import { getFallbackAssistantReply } from './assistant.service.js';
+import { trimmedText } from '../../shared/validation.js';
 
 const chatSchema = z.object({
-  message: z.string().min(1).max(1000),
-  history: z.array(z.object({ role: z.enum(['user', 'assistant']), content: z.string() })).max(20).optional(),
-});
+  message: trimmedText(1, 1000),
+  history: z.array(z.object({
+    role: z.enum(['user', 'assistant']),
+    content: trimmedText(1, 2000),
+  }).strict()).max(20).optional(),
+}).strict();
 
 const systemPrompt = 'You are FitMeal AI, a friendly nutrition and meal-planning assistant embedded in the FitMeal app. '
   + 'Give practical, general guidance on meals, recipes, calories and macros, based on common nutrition knowledge. Keep replies short and conversational (a few sentences). '

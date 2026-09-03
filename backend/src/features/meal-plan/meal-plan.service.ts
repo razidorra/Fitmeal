@@ -21,9 +21,9 @@ interface MealTemplate {
   steps: string[];
 }
 
-// Every option within a slot shares that slot's calorie/protein share of the daily target, so a
-// day's total always sums back to the target no matter which dish gets picked — only the food
-// itself varies. Each dish is tagged with the goals it suits: "lose" gets leaner, lower-calorie-
+// Every option within a slot receives that slot's calorie/protein budget from the daily target.
+// These values guide portion adjustment; they are not calculated nutrition for the fixed example
+// ingredient quantities. Each dish is tagged with the goals it suits: "lose" gets leaner, lower-calorie-
 // density options; "maintain"/"gain" share a heartier pool. That's what makes the plan actually
 // look different for someone losing weight vs. someone trying to gain, not just differently sized
 // portions of the same four dishes.
@@ -151,7 +151,7 @@ function pickMeal(time: string, goal: Goal, date: string): MealTemplate {
   return options[hashString(`${date}-${goal}-${time}`) % options.length];
 }
 
-// A weekly cheat day (every Sunday) — no fixed menu that day, just a reminder that one planned,
+// A weekly flex day (every Sunday) — no fixed menu that day, just a reminder that one planned,
 // guilt-free meal is a normal part of a sustainable eating pattern rather than a slip-up.
 function isCheatDay(date: string): boolean {
   return new Date(`${date}T00:00:00`).getDay() === 0;
@@ -163,7 +163,10 @@ const mealTimes = ['Breakfast', 'Lunch', 'Snack', 'Dinner'];
 // for the goal direction. Protein/carbs/fats are then derived from that calorie target, not tracked
 // independently — this keeps the macros internally consistent with each other.
 export function getTargets(profile: ProfileInput) {
-  const base = 10 * profile.weightKg + 6.25 * profile.heightCm - 5 * profile.age + (profile.sex === 'male' ? 5 : -161);
+  // Mifflin-St Jeor publishes two equation constants. The profile UI makes this choice explicit;
+  // `other` remains a privacy/inclusion option and intentionally uses the -161 equation.
+  const equationConstant: Record<ProfileInput['sex'], number> = { male: 5, female: -161, other: -161 };
+  const base = 10 * profile.weightKg + 6.25 * profile.heightCm - 5 * profile.age + equationConstant[profile.sex];
   const factor = { low: 1.2, light: 1.375, moderate: 1.55, high: 1.725 }[profile.activity];
   const adjustment = { lose: -400, maintain: 0, gain: 350 }[profile.goal];
   const calories = Math.round(base * factor + adjustment);
@@ -176,7 +179,7 @@ export function buildPlan(profile: ProfileInput, date: string) {
   if (isCheatDay(date)) {
     const meals = mealTimes.map((time) => ({
       time,
-      title: 'Cheat day 🎉',
+      title: 'Flex day 🎉',
       ingredients: 'Eat what you enjoy today — no fixed menu.',
       ingredientsList: [] as string[],
       steps: [] as string[],
@@ -184,7 +187,7 @@ export function buildPlan(profile: ProfileInput, date: string) {
       protein: 0,
       confirmed: null as boolean | null,
     }));
-    return { targets, meals, isCheatDay: true };
+    return { targets, meals, isCheatDay: true, nutritionBasis: 'target-budget' as const };
   }
 
   const meals = mealTimes.map((time) => {
@@ -202,5 +205,5 @@ export function buildPlan(profile: ProfileInput, date: string) {
       confirmed: null as boolean | null,
     };
   });
-  return { targets, meals, isCheatDay: false };
+  return { targets, meals, isCheatDay: false, nutritionBasis: 'target-budget' as const };
 }

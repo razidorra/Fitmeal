@@ -11,7 +11,7 @@ const verdictBadgeClass: Record<'good' | 'ok' | 'poor', string> = { good: 'borde
 
 // Summarizes the day from each meal's own confirm-or-swap answer, rather than a separate whole-day check.
 function summarizeDay(plan: MealPlan) {
-  if (plan.isCheatDay) return { label: 'Cheat day 🎉', tone: 'good' as const };
+  if (plan.isCheatDay) return { label: 'Flex day 🎉', tone: 'good' as const };
 
   const total = plan.meals.length;
   const changedCount = plan.meals.filter((meal) => meal.isCustom).length;
@@ -30,8 +30,8 @@ function DayRow({ plan, isExpanded, onToggle }: { plan: MealPlan; isExpanded: bo
     <button type="button" aria-expanded={isExpanded} className="grid w-full grid-cols-[1.2fr_auto_auto_auto_24px] items-center gap-4 rounded-none border-0 bg-transparent py-4 px-4.5 text-left font-sans text-sm text-ink hover:translate-y-0 hover:bg-input max-[720px]:grid-cols-2 max-[720px]:gap-y-2" onClick={onToggle}>
       <span><strong className="block font-semibold">{formatDisplayDate(plan.date)}</strong><small className="text-[10px] uppercase tracking-wider text-ink-muted">Daily plan</small></span>
       <span className={`text-xs py-1 px-2.5 border justify-self-start rounded-[20px] ${verdictBadgeClass[summary.tone]}`}>{summary.label}</span>
-      <span>{plan.isCheatDay ? '—' : `${sum(plan, 'calories')} kcal`}</span>
-      <span>{plan.isCheatDay ? '—' : `${sum(plan, 'protein')}g protein`}</span>
+      <span>{plan.isCheatDay ? '—' : `${sum(plan, 'calories')} kcal budget`}</span>
+      <span>{plan.isCheatDay ? '—' : `${sum(plan, 'protein')}g protein budget`}</span>
       <span className="text-center text-accent max-[720px]:hidden" aria-hidden="true">{isExpanded ? '↑' : '↓'}</span>
     </button>
     {isExpanded && <div className="mx-4.5 px-4.5 pb-4 pt-3 border-t border-line text-ink-soft text-[13px] grid gap-2.5">

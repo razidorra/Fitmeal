@@ -1,13 +1,14 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { MealPlan } from './meal-plan.model.js';
+import { MealPlan, type PlannedMeal } from './meal-plan.model.js';
 import { buildPlan } from './meal-plan.service.js';
 import { findOwnedProfile } from '../../shared/ownership.js';
 import { requireUserId } from '../../shared/auth.js';
+import { localDateSchema, trimmedText } from '../../shared/validation.js';
 
 export const mealPlanRouter = Router();
 
-const generateSchema = z.object({ date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), regenerate: z.boolean().optional() });
+const generateSchema = z.object({ date: localDateSchema, regenerate: z.boolean().optional() }).strict();
 
 // Get-or-create semantics: called once per day when the planner loads, it returns today's plan if
 // one already exists (so custom swaps and per-meal confirmations survive a page reload) and only
@@ -32,7 +33,7 @@ mealPlanRouter.post('/generate/:profileId', async (req, res, next) => {
     const plan = await MealPlan.findOneAndUpdate(
       { profileId: profile.id, date },
       { profileId: profile.id, date, ...built },
-      { upsert: true, new: true },
+      { upsert: true, new: true, runValidators: true, setDefaultsOnInsert: true },
     );
 
     res.status(201).json(plan);
@@ -65,7 +66,7 @@ mealPlanRouter.get('/:profileId/history', async (req, res, next) => {
     const profile = await findOwnedProfile(req.params.profileId, userId);
     if (!profile) { res.status(404).json({ message: 'Profile not found' }); return; }
 
-    const days = Math.min(Number(req.query.days) || 14, 60);
+    const days = z.coerce.number().int().min(1).max(60).default(14).parse(req.query.days);
     const since = new Date();
     since.setDate(since.getDate() - days);
     const sinceDate = since.toISOString().slice(0, 10);
@@ -85,10 +86,10 @@ mealPlanRouter.patch('/:planId/meals/:time/confirm', async (req, res, next) => {
     const plan = await MealPlan.findById(req.params.planId).catch(() => null);
     if (!plan) { res.status(404).json({ message: 'Meal plan not found' }); return; }
 
-    const owningProfile = await findOwnedProfile(String(plan.get('profileId')), userId);
+    const owningProfile = await findOwnedProfile(String(plan.profileId), userId);
     if (!owningProfile) { res.status(404).json({ message: 'Meal plan not found' }); return; }
 
-    const meals = plan.get('meals') as Array<Record<string, unknown>>;
+    const meals = plan.meals;
     const mealIndex = meals.findIndex((meal) => meal.time === req.params.time);
     if (mealIndex === -1) { res.status(404).json({ message: 'Meal slot not found in this plan' }); return; }
 
@@ -101,11 +102,11 @@ mealPlanRouter.patch('/:planId/meals/:time/confirm', async (req, res, next) => {
   }
 });
 
-const customMealSchema = z.object({ description: z.string().min(1).max(300) });
+const customMealSchema = z.object({ description: trimmedText(1, 300) }).strict();
 
 // Replace one meal slot with a freely-typed meal — just records what you actually had, no AI
 // involved, so it never depends on any external quota. Nutrition numbers keep the slot's original
-// budget since we have no way to know the real values without asking something to estimate them.
+// target budget since we do not calculate nutrition for arbitrary descriptions.
 mealPlanRouter.post('/:planId/meals/:time', async (req, res, next) => {
   try {
     const userId = requireUserId(req, res);
@@ -114,10 +115,10 @@ mealPlanRouter.post('/:planId/meals/:time', async (req, res, next) => {
     const plan = await MealPlan.findById(req.params.planId).catch(() => null);
     if (!plan) { res.status(404).json({ message: 'Meal plan not found' }); return; }
 
-    const owningProfile = await findOwnedProfile(String(plan.get('profileId')), userId);
+    const owningProfile = await findOwnedProfile(String(plan.profileId), userId);
     if (!owningProfile) { res.status(404).json({ message: 'Meal plan not found' }); return; }
 
-    const meals = plan.get('meals') as Array<Record<string, unknown>>;
+    const meals = plan.meals;
     const mealIndex = meals.findIndex((meal) => meal.time === req.params.time);
     if (mealIndex === -1) { res.status(404).json({ message: 'Meal slot not found in this plan' }); return; }
 
@@ -127,12 +128,12 @@ mealPlanRouter.post('/:planId/meals/:time', async (req, res, next) => {
     // Keep the very first suggested title and its recipe details even across repeated swaps, so the
     // UI can always show "was X, now Y" in history, and still show how the original suggestion was
     // meant to be prepared, instead of losing that the moment it's swapped.
-    const originalTitle = (slot.originalTitle as string | undefined) ?? (slot.title as string);
-    const originalIngredientsList = (slot.originalIngredientsList as string[] | undefined) ?? (slot.ingredientsList as string[] | undefined);
-    const originalSteps = (slot.originalSteps as string[] | undefined) ?? (slot.steps as string[] | undefined);
-    const originalImage = (slot.originalImage as string | undefined) ?? (slot.image as string | undefined);
+    const originalTitle = slot.originalTitle ?? slot.title;
+    const originalIngredientsList = slot.originalIngredientsList ?? slot.ingredientsList;
+    const originalSteps = slot.originalSteps ?? slot.steps;
+    const originalImage = slot.originalImage ?? slot.image;
 
-    plan.meals = meals.map((meal, index) => index === mealIndex ? {
+    plan.meals = meals.map((meal, index): PlannedMeal => index === mealIndex ? {
       time: slot.time,
       title: description.length > 60 ? `${description.slice(0, 57)}...` : description,
       ingredients: description,

@@ -35,6 +35,10 @@ describe('getTargets', () => {
     expect(male.calories - female.calories).toBe(Math.round(166 * moderateActivityFactor));
   });
 
+  it('uses the documented -161 equation for the other option', () => {
+    expect(getTargets({ ...baseProfile, sex: 'other' })).toEqual(getTargets({ ...baseProfile, sex: 'female' }));
+  });
+
   it('scales the calorie target up as the activity level rises', () => {
     const low = getTargets({ ...baseProfile, activity: 'low' });
     const light = getTargets({ ...baseProfile, activity: 'light' });
@@ -59,7 +63,8 @@ const aSunday = '2026-08-23';
 
 describe('buildPlan', () => {
   it('returns exactly one meal for each of the four time slots, in order', () => {
-    const { meals } = buildPlan(baseProfile, aMonday);
+    const { meals, nutritionBasis } = buildPlan(baseProfile, aMonday);
+    expect(nutritionBasis).toBe('target-budget');
     expect(meals.map((meal) => meal.time)).toEqual(['Breakfast', 'Lunch', 'Snack', 'Dinner']);
   });
 
@@ -105,11 +110,11 @@ describe('buildPlan', () => {
     expect(lose).not.toEqual(gain);
   });
 
-  it('marks Sundays as a cheat day with a free-choice placeholder and no fixed calories', () => {
+  it('marks Sundays as a flex day with a free-choice placeholder and no fixed calories', () => {
     const { meals, isCheatDay } = buildPlan(baseProfile, aSunday);
     expect(isCheatDay).toBe(true);
     for (const meal of meals) {
-      expect(meal.title).toBe('Cheat day 🎉');
+      expect(meal.title).toBe('Flex day 🎉');
       expect(meal.calories).toBe(0);
       expect(meal.protein).toBe(0);
     }

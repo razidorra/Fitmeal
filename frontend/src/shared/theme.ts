@@ -26,3 +26,8 @@ export function setTheme(userId: string, theme: Theme) {
   localStorage.setItem(`${STORAGE_KEY_PREFIX}:${userId}`, theme);
   applyTheme(theme);
 }
+
+export function clearStoredTheme(userId: string) {
+  localStorage.removeItem(`${STORAGE_KEY_PREFIX}:${userId}`);
+  applyTheme('dark');
+}

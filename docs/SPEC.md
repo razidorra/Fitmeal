@@ -3,9 +3,9 @@
 ## Document status
 
 - Project stage: final feature-complete candidate
-- Last reviewed against source: 2026-08-27
+- Last reviewed against source: 2026-09-03
 - Implementation status: complete for the scope below
-- Release status: local build/test verification available; first hosted deployment and production smoke test are still pending
+- Release status: public GitHub Pages frontend is live; full-stack deployment configuration and the production smoke test are still pending
 
 This document describes the current application, not an aspirational backlog. Historical implementation decisions are recorded in [AUDIT.md](AUDIT.md), and hosting instructions are in [DEPLOYMENT.md](DEPLOYMENT.md).
 
@@ -30,7 +30,7 @@ Recipe cards prompt signed-out visitors to sign in before opening the details mo
 ### Public experience
 
 1. Render a responsive, nutrition-focused home page with shared header, navigation, background treatment, and footer.
-2. Present 25 static recipes across meal, fruit, snack, dessert, and smoothie categories.
+2. Present 24 static recipes across meal, fruit, snack, dessert, and smoothie categories.
 3. Search recipes by title, description, tag, or ingredient; filter by category and goal; and sort by recommendation, preparation time, protein, or calories.
 4. Show collection statistics, a featured recipe, result counts, photos, tags, preparation time, servings, and estimated nutrition per serving.
 5. Open ingredients, steps, health context, and nutrition in a modal for an allowed recipe-card interaction.
@@ -48,7 +48,7 @@ Recipe cards prompt signed-out visitors to sign in before opening the details mo
 
 ### Profile and targets
 
-1. Collect name, age, sex, height, weight, activity level, and lose/maintain/gain goal.
+1. Collect name, age, Mifflin–St Jeor equation choice, height, weight, activity level, and lose/maintain/gain goal. The UI explains that the formula defines male (+5) and female (−161) constants and that “Other / prefer not to say” uses −161.
 2. Validate the same allowed ranges and values on the backend.
 3. Create and later edit an account-scoped profile.
 4. Calculate calorie needs using Mifflin-St Jeor, an activity multiplier, and a goal adjustment.
@@ -73,7 +73,7 @@ Recipe cards prompt signed-out visitors to sign in before opening the details mo
 2. Let users replace a non-cheat-day slot with a free-text description of 1–300 characters.
 3. Preserve the first suggestion's title, image, ingredients, and preparation steps across repeated replacements.
 4. Mark replacements as changed and show “original → replacement” in the plan/history UI.
-5. Keep the suggested slot calorie/protein values because no reliable nutrition calculation is performed for arbitrary text.
+5. Keep the suggested slot calorie/protein budgets because no reliable nutrition calculation is performed for arbitrary text.
 6. Perform confirmation and replacement without an AI request.
 
 ### Progress
@@ -103,6 +103,7 @@ Recipe cards prompt signed-out visitors to sign in before opening the details mo
 3. Store the selected theme per Clerk account in `localStorage`, restore it when that account signs in, and return signed-out pages to Midnight Gold.
 4. Use theme-backed Tailwind utilities for application colors, with the fixed-color phone mockup as the only documented design exception.
 5. Keep shared navigation and footer usable when routed page content throws.
+6. Let a signed-in user permanently delete their owned profile, generated plans, and check-ins after a second confirmation; clear the local theme preference but leave the separately managed Clerk identity active.
 
 ## Architecture
 
@@ -139,9 +140,10 @@ During local development, Vite proxies `/api` to `http://localhost:4000`. A sepa
 - Profile reference
 - User-local date string
 - Daily calorie and macro targets
+- Explicit `target-budget` nutrition basis
 - Four meal slots
 - Original/replacement metadata and confirmation state
-- Cheat-day flag
+- Weekly flex-day flag
 - Created/updated timestamps
 
 ### Check-in
@@ -155,10 +157,11 @@ During local development, Vite proxies `/api` to `http://localhost:4000`. A sepa
 
 | Method | Path | Success |
 | --- | --- | --- |
-| `GET` | `/api/health` | `200 { "ok": true }` |
+| `GET` | `/api/health` | `200 { "ok": true, "database": "connected" }` when ready; otherwise `503` |
 | `GET` | `/api/profiles/latest` | `200` profile or `null` |
 | `POST` | `/api/profiles` | `201` created profile |
 | `PATCH` | `/api/profiles/:profileId` | `200` updated profile |
+| `DELETE` | `/api/profiles/:profileId` | `204`; deletes the owned profile and dependent plans/check-ins |
 | `POST` | `/api/meal-plans/generate/:profileId` | `200` existing or `201` created/replaced plan |
 | `GET` | `/api/meal-plans/latest/:profileId` | `200` plan or `null` |
 | `GET` | `/api/meal-plans/:profileId/history?days=14` | `200` plan array |
@@ -170,6 +173,8 @@ During local development, Vite proxies `/api` to `http://localhost:4000`. A sepa
 | `POST` | `/api/assistant/chat` | `200` live or labelled fallback reply |
 
 Protected endpoints return `401` for no session and `503` when backend Clerk configuration is absent. Validation failures are JSON errors, and ownership misses return `404`.
+
+The API uses security headers, bounded JSON bodies, production CORS allowlisting, and separate general/assistant rate limits. Expected client errors receive specific 4xx responses; unexpected failures are logged without exposing their internal messages to the browser.
 
 ## Quality requirements
 
@@ -194,20 +199,19 @@ Protected endpoints return `401` for no session and `503` when backend Clerk con
 - [x] Weight check-ins and rule-based review
 - [x] Account summary and six themes
 - [x] Groq assistant with timeout and offline fallback
-- [x] Backend unit/integration tests
+- [x] Frontend interaction/unit tests and backend unit/integration tests
 - [x] Frontend and backend production build configuration
 - [x] Render Blueprint and deployment guide
-- [ ] First production deployment
+- [x] Public frontend deployment
+- [ ] Production API deployment
 - [ ] Production Clerk/MongoDB/Groq configuration
 - [ ] Production end-to-end smoke test
 
 ## Known constraints
 
-- There is no automated frontend test runner; frontend verification relies on the strict production build and manual/browser checks.
 - Recipe-card interactions and direct detail routes are sign-in-gated in the UI. Static recipe data still ships in the public frontend bundle, so this is not a security boundary for sensitive information.
-- CORS currently allows all origins. This is convenient for separate preview hosts but should be restricted to the production frontend origin for a hardened release.
-- Plan uniqueness is implemented with route-level get-or-create logic rather than a compound unique database index, so simultaneous first requests for the same profile/date could race.
-- Multiple profiles can be created for one Clerk user; the application uses the latest profile rather than enforcing one profile per account.
+- Meal-level calorie and protein values are target budgets derived from the profile, not exact nutrition calculations for fixed ingredient quantities.
+- Production requires an explicit CORS allowlist and fails startup when database, Clerk, or CORS configuration is missing.
 - Groq availability and quota affect live assistant answers only; fallback guidance remains available.
 - Render free web services have cold starts after inactivity, and the application depends on an externally managed MongoDB database.
 - Completing the first deployment requires account-owner access to Render, MongoDB Atlas, Clerk, and optionally Groq.

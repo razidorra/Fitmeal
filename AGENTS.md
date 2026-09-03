@@ -9,7 +9,7 @@ FitMeal is a full-stack meal-planning web application.
 - Auth: Clerk (`@clerk/react` frontend, `@clerk/express` backend) — public content works without keys, but protected screens show setup guidance and protected APIs return 503
 - AI: Groq, used only by the assistant chat — meal swaps and progress reviews are plain, rule-based, and never call it
 - Database: MongoDB
-- Tests: Vitest + Supertest + `mongodb-memory-server` (backend only)
+- Tests: Vitest + Testing Library (frontend); Vitest + Supertest + `mongodb-memory-server` (backend); Playwright (browser flows)
 - Package manager: npm workspaces
 
 ## Commands
@@ -20,7 +20,8 @@ Run commands from the repository root unless stated otherwise.
 npm install
 npm run dev     # frontend on :5173, API on :4000
 npm run build   # builds both workspaces
-npm test        # backend test suite (vitest run)
+npm test        # frontend and backend test suites
+npm run test:e2e # Playwright public flow; hosted auth flow needs documented credentials
 ```
 
 ## Source layout
@@ -71,12 +72,13 @@ docs/                          # SPEC.md (requirements), AUDIT.md (dated change 
 - Update `backend/.env.example` when a required non-secret environment variable changes.
 - Return JSON error responses from the API.
 - Every route that reads or writes a profile, meal plan, or check-in requires a signed-in Clerk session and calls `findOwnedProfile`/an equivalent ownership check — a request for someone else's record returns 404, not their data.
-- Wrap every async Express route body in `try/catch` and call `next(error)` on failure. Express 4 does not forward rejected promises automatically; skipping this can crash the process on a single bad request.
+- Keep the existing explicit `try/catch` and `next(error)` pattern in async routes so error flow remains obvious and consistent with the shared JSON error middleware.
 
 ## Tests
 
-- `npm run test -w backend` (or `npm test` from the root) runs the backend suite: pure unit tests for calculations and assistant fallback guidance (calorie/macro formula, meal-plan variety/goal-selection, cheat-day detection), plus Supertest route tests against the exported `app`, using `mongodb-memory-server` for a real ephemeral database and a mocked `@clerk/express` to simulate different signed-in users.
-- There is no frontend test runner. Frontend changes are verified with a full `npm run build` (both `tsc -b`, which is stricter than a bare `tsc --noEmit` and has caught real bugs the latter missed, and the Vite build) plus manual/headless-browser checks — see `docs/AUDIT.md` for the pattern used throughout (temporary mock routes/data for states that need a real signed-in session, deleted once verified).
+- `npm run test -w backend` runs pure calculation/fallback tests plus Supertest route tests against the exported `app`, using `mongodb-memory-server` and mocked Clerk sessions.
+- `npm run test -w frontend` runs Vitest/Testing Library checks for shared behavior and user-facing components. Frontend changes also require the full `npm run build` (`tsc -b` plus Vite) and proportional manual/headless-browser checks.
+- `npm run test:e2e` runs the public Playwright suite against a locally built preview. The authenticated project requires the deployment and Clerk variables documented in `README.md` so it can verify the real hosted stack.
 
 ## Before handoff
 

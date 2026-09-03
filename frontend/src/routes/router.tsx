@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { createRootRoute, createRoute, createRouter, Link, Outlet } from '@tanstack/react-router';
+import { createRootRoute, createRoute, createRouter, Link, Outlet, useRouterState } from '@tanstack/react-router';
 import { Show, SignInButton, SignUpButton, useAuth, useClerk, useUser } from '@clerk/react';
 import { HomePage } from '../features/home/HomePage';
 import { MealPlannerPage } from '../features/meal-plan/MealPlannerPage';
@@ -11,6 +11,7 @@ import { FloatingAssistant } from '../features/meal-plan/FloatingAssistant';
 import { isClerkConfigured } from '../shared/clerk';
 import { SiteFooter } from '../shared/components/SiteFooter';
 import { ErrorBoundary } from '../shared/components/ErrorBoundary';
+import { NotFoundPage } from '../shared/components/NotFoundPage';
 import { api } from '../shared/api';
 import { profileNameChangedEvent } from '../shared/profileEvents';
 
@@ -66,6 +67,12 @@ function AccountStatus() {
 
 function Layout() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
 
   // The boundary wraps only the routed page content, not the header/nav/footer — so a crash on
   // one page still leaves navigation usable to get somewhere else.
@@ -114,14 +121,14 @@ function Layout() {
       {isClerkConfigured && <Link to="/account" className="rounded-lg px-4 py-3 text-ink-soft no-underline" activeProps={{ className: navLinkActiveClass }} onClick={() => setIsMobileMenuOpen(false)}>Account</Link>}
     </nav>}
     <main className="max-w-320 mx-auto pt-16 max-[720px]:pt-10 px-[max(4vw,32px)] max-[720px]:px-5 pb-0 overflow-x-clip">
-      <ErrorBoundary><Outlet /></ErrorBoundary>
+      <ErrorBoundary key={pathname}><Outlet /></ErrorBoundary>
       <SiteFooter />
     </main>
     {isClerkConfigured && <Show when="signed-in"><FloatingAssistant /></Show>}
   </>;
 }
 
-const rootRoute = createRootRoute({ component: Layout });
+const rootRoute = createRootRoute({ component: Layout, notFoundComponent: NotFoundPage });
 const homeRoute = createRoute({ getParentRoute: () => rootRoute, path: '/', component: HomePage });
 const recipesRoute = createRoute({ getParentRoute: () => rootRoute, path: '/recipes', component: RecipesPage });
 const recipeDetailsRoute = createRoute({ getParentRoute: () => rootRoute, path: '/recipes/$recipeSlug', component: RecipeDetailsPage });

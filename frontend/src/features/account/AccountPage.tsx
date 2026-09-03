@@ -4,7 +4,7 @@ import { useAuth, useUser, SignInButton, SignUpButton } from '@clerk/react';
 import { api } from '../../shared/api';
 import { isClerkConfigured } from '../../shared/clerk';
 import { getLocalDateString } from '../../shared/date';
-import { getStoredTheme, setTheme, type Theme } from '../../shared/theme';
+import { clearStoredTheme, getStoredTheme, setTheme, type Theme } from '../../shared/theme';
 import type { Checkin, MealPlan, Profile } from '../../shared/types';
 import { PageLoading } from '../../shared/components/PageLoading';
 
@@ -40,6 +40,10 @@ function AccountContent() {
   const [progressError, setProgressError] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [theme, setThemeState] = useState<Theme>('dark');
+  const [isConfirmingDeletion, setIsConfirmingDeletion] = useState(false);
+  const [isDeletingData, setIsDeletingData] = useState(false);
+  const [deletionError, setDeletionError] = useState('');
+  const [deletionNotice, setDeletionNotice] = useState('');
 
   useEffect(() => {
     setThemeState(getStoredTheme(user?.id));
@@ -79,6 +83,27 @@ function AccountContent() {
     if (!user) return;
     setTheme(user.id, next);
     setThemeState(next);
+  }
+
+  async function handleDeleteData() {
+    if (!profile || !user || isDeletingData) return;
+    setIsDeletingData(true);
+    setDeletionError('');
+
+    try {
+      await api.deleteProfile(await getToken(), profile._id);
+      clearStoredTheme(user.id);
+      setThemeState('dark');
+      setProfile(null);
+      setPlan(null);
+      setCheckins(null);
+      setIsConfirmingDeletion(false);
+      setDeletionNotice('Your FitMeal profile, meal plans, and check-ins were deleted. Your Clerk sign-in account remains active.');
+    } catch (error) {
+      setDeletionError(error instanceof Error ? error.message : 'Could not delete your FitMeal data.');
+    } finally {
+      setIsDeletingData(false);
+    }
   }
 
   if (!authLoaded || isLoading) return <PageLoading label="Loading your account" />;
@@ -161,5 +186,22 @@ function AccountContent() {
         </button>)}
       </div>
     </div>
+
+    <section className="mt-5 rounded-2xl border border-poor bg-surface py-6.5 px-7 shadow-[0_18px_50px_rgba(0,0,0,.1)]" aria-labelledby="privacy-heading">
+      <span className="font-sans text-[11px] font-semibold uppercase tracking-wider text-poor-text">Privacy and data</span>
+      <h2 id="privacy-heading" className="mt-1.5 mb-3 font-display text-[22px] font-semibold">Delete stored FitMeal data</h2>
+      <p className="mb-4.5 max-w-190 text-sm leading-[1.6] text-ink-soft">FitMeal stores your nutrition profile, generated meal plans, and weight check-ins in MongoDB under your Clerk user ID. Deleting removes those FitMeal records and this device’s theme preference, but does not delete your Clerk sign-in account.</p>
+      {deletionNotice && <p role="status" className="rounded-xl border border-good bg-surface-alt p-4 text-good-text">{deletionNotice}</p>}
+      {deletionError && <p role="alert" className="text-poor-text">{deletionError}</p>}
+      {!isConfirmingDeletion
+        ? <button type="button" disabled={!profile} onClick={() => setIsConfirmingDeletion(true)} className="rounded-full border border-poor bg-transparent px-5 py-2.75 text-poor-text hover:bg-surface-alt">{profile ? 'Delete my FitMeal data' : 'No FitMeal data to delete'}</button>
+        : <div className="rounded-xl border border-poor bg-surface-alt p-4.5">
+          <p className="mt-0 font-semibold text-poor-text">This cannot be undone. Permanently delete your profile, every generated plan, and all check-ins?</p>
+          <div className="flex flex-wrap gap-3">
+            <button type="button" disabled={isDeletingData} onClick={handleDeleteData} className="rounded-full border border-poor bg-poor px-5 py-2.5 text-on-accent">{isDeletingData ? 'Deleting…' : 'Permanently delete data'}</button>
+            <button type="button" disabled={isDeletingData} onClick={() => setIsConfirmingDeletion(false)} className="rounded-full border border-line-strong bg-transparent px-5 py-2.5 text-ink">Cancel</button>
+          </div>
+        </div>}
+    </section>
   </>;
 }

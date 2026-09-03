@@ -8,8 +8,8 @@ The repository is configured for deployment, but a live production deployment ca
 
 | Service | Type | Build | Output/start |
 | --- | --- | --- | --- |
-| `fitmeal-api` | Free Node web service | `npm install && npm run build -w backend` | `npm run start` |
-| `fitmeal-web` | Free static site | `npm install && npm run build -w frontend` | `frontend/dist` |
+| `fitmeal-api` | Free Node web service | `npm ci && npm run build -w backend` | `npm run start` |
+| `fitmeal-web` | Free static site | `npm ci && npm run build -w frontend` | `frontend/dist` |
 
 The static service includes a `/* → /index.html` rewrite so TanStack Router deep links load the application rather than returning a host-level 404.
 
@@ -50,6 +50,7 @@ Set these on `fitmeal-api`:
 | `MONGODB_URI` | Yes | Atlas connection string including the database name |
 | `CLERK_PUBLISHABLE_KEY` | Yes | Clerk publishable key used by the frontend |
 | `CLERK_SECRET_KEY` | Yes | Matching Clerk secret key |
+| `CORS_ORIGINS` | Yes | Comma-separated frontend origins, without paths or trailing slashes |
 | `GROQ_API_KEY` | No | Groq key for live assistant responses |
 
 `PORT=4000` and `GROQ_MODEL=openai/gpt-oss-20b` are already declared by the Blueprint.
@@ -60,7 +61,7 @@ In MongoDB Atlas:
 2. Add network access that permits the Render API service to connect.
 3. Keep the Atlas credentials only in `MONGODB_URI`.
 
-The API can start without `MONGODB_URI`, but profile, meal-plan, and progress requests will fail. It can also start without Clerk keys, but all protected endpoints will return `503`.
+In local development the API can start without `MONGODB_URI` or Clerk keys so public/fallback behavior remains inspectable. With `NODE_ENV=production`, startup fails fast unless MongoDB, both Clerk keys, and `CORS_ORIGINS` are configured.
 
 ## 3. Complete the first API deployment
 
@@ -71,7 +72,7 @@ Apply the Blueprint and wait for `fitmeal-api` to finish. Then:
 3. Confirm it returns:
 
    ```json
-   { "ok": true }
+   { "ok": true, "database": "connected" }
    ```
 
 If the build succeeds but the service does not become healthy, check the Render logs for MongoDB connection errors, missing dependencies, or an incorrect start command.
@@ -119,7 +120,22 @@ Run this checklist on the deployed frontend:
 - [ ] The floating and in-planner assistant both respond with a valid Groq key.
 - [ ] Removing/invalidating the Groq key produces labelled fallback guidance without breaking other features.
 - [ ] Another signed-in account cannot read the first account's data.
+- [ ] Account data deletion requires confirmation, removes the profile/plans/check-ins, and still prevents cross-account deletion.
 - [ ] Browser developer tools show no failed API/CORS/auth requests during the flow.
+
+### Automated browser smoke test
+
+The Playwright public flow runs in CI. Once a test deployment and dedicated Clerk test user exist, the authenticated flow automates sign-in, profile creation (or safe reuse if an earlier run was interrupted), plan generation, meal logging, a weight check-in, progress review, and data deletion for cleanup:
+
+```bash
+E2E_BASE_URL=https://your-frontend.example/optional-base-path \
+CLERK_PUBLISHABLE_KEY=pk_test_... \
+CLERK_SECRET_KEY=sk_test_... \
+E2E_CLERK_USER_EMAIL=fitmeal+clerk_test@example.com \
+npm run test:e2e -- --project=authenticated-chromium
+```
+
+Keep the secret and test-user address in CI secrets. The authenticated project skips when any required value is missing, while public browser checks still run.
 
 ## Alternative: GitHub Pages for the frontend
 
@@ -129,7 +145,7 @@ GitHub Pages only serves static files — it cannot run the Express API or conne
 
 To turn it on:
 
-1. In the repository, open **Settings → Pages** and set **Source** to **GitHub Actions** (one-time; this repo isn't currently serving a Pages site).
+1. In the repository, confirm **Settings → Pages → Source** is set to **GitHub Actions**. The public frontend already uses this deployment path.
 2. Deploy the API first (steps 1–3 above) and note its `https://.../api` URL.
 3. Open **Settings → Secrets and variables → Actions → Variables** and add:
 
@@ -142,7 +158,7 @@ To turn it on:
 4. Push to `main` (or run the workflow manually from the **Actions** tab) and wait for the `Deploy frontend to GitHub Pages` run to finish. The site is then live at `https://razidorra.github.io/Fitmeal/`.
 5. Add `https://razidorra.github.io` as an allowed origin in Clerk (see step 5 above) — without it, sign-in will fail on the Pages URL even though it works on Render.
 
-Until `VITE_API_URL` is set, the build still deploys — the public Home and Recipes pages work, but sign-in, the planner, progress, and the assistant will fail since they have nothing to call.
+The Pages workflow refuses to deploy when `VITE_API_URL` or `VITE_CLERK_PUBLISHABLE_KEY` is missing, preventing a public build whose authenticated features cannot reach the API.
 
 ## Operations and hardening
 
@@ -152,7 +168,7 @@ Render free web services spin down after 15 minutes without inbound traffic and 
 
 ### CORS
 
-The API currently uses `cors()`, which permits all origins. This supports local development and Render's separately hosted frontend. For a hardened release, configure an allowed origin environment variable and restrict production requests to the deployed frontend domain.
+Development accepts browser origins for local convenience. Production requires `CORS_ORIGINS` and only accepts listed origins. For GitHub Pages, use `https://razidorra.github.io`; CORS origins never include `/Fitmeal/` or another URL path.
 
 ### Data persistence
 
@@ -167,21 +183,21 @@ Application data is stored in MongoDB, not on Render's local filesystem. Render 
 
 ### Monitoring
 
-The configured `/api/health` endpoint confirms that Express is running. It does not currently test MongoDB, Clerk, or Groq connectivity. Use the production smoke test and Render/Atlas dashboards when diagnosing those dependencies.
+The configured `/api/health` endpoint returns `200` only when MongoDB is connected and `503` otherwise. It does not call Clerk or Groq; use the production smoke test and provider dashboards when diagnosing those dependencies.
 
 ## Alternative hosts
 
 Any Node host can run the API with:
 
 ```text
-Build: npm install && npm run build -w backend
+Build: npm ci && npm run build -w backend
 Start: npm run start
 ```
 
 Any static host can run the frontend with:
 
 ```text
-Build: npm install && npm run build -w frontend
+Build: npm ci && npm run build -w frontend
 Publish: frontend/dist
 Rewrite: /* -> /index.html
 ```
