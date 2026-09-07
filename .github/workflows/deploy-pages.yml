@@ -49,7 +49,7 @@ jobs:
 
       - name: Build frontend
         env:
-          GITHUB_PAGES: "true"
+          VITE_BASE_PATH: /${{ github.event.repository.name }}/
           # Set these as repository variables/secrets in Settings → Secrets and variables →
           # Actions once the backend is deployed (e.g. on Render — see docs/DEPLOYMENT.md).
           # Until VITE_API_URL is set, the deployed site's sign-in/planner/progress/assistant

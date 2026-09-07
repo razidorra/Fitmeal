@@ -12,11 +12,13 @@ import { isClerkConfigured } from '../shared/clerk';
 import { SiteFooter } from '../shared/components/SiteFooter';
 import { ErrorBoundary } from '../shared/components/ErrorBoundary';
 import { NotFoundPage } from '../shared/components/NotFoundPage';
+import { MobileAuthMenu } from '../shared/components/MobileAuthMenu';
 import { api } from '../shared/api';
 import { profileNameChangedEvent } from '../shared/profileEvents';
 
 const navLinkClass = 'rounded-full px-4 py-2 text-ink-soft no-underline text-[13px] font-medium tracking-[.01em] hover:bg-hover hover:text-ink';
 const navLinkActiveClass = 'bg-accent! text-on-accent! font-semibold shadow-[0_4px_14px_rgba(0,0,0,.14)]';
+const appHomeUrl = import.meta.env.BASE_URL;
 
 // Only ever mounted inside <Show when="signed-in">, so a real user is always loaded by the time
 // this renders — that's what makes calling useUser()/useClerk() here safe with no extra guards.
@@ -56,7 +58,7 @@ function AccountStatus() {
         <span className="max-w-28 truncate text-[13px] font-semibold text-ink">{name}</span>
       </span>
     </Link>
-    <button type="button" aria-label="Log out" title="Log out" onClick={() => signOut({ redirectUrl: '/' })} className="grid h-9 w-9 place-items-center rounded-full border border-line bg-transparent p-0 text-ink-soft hover:border-line-strong hover:bg-hover hover:text-ink">
+    <button type="button" aria-label="Log out" title="Log out" onClick={() => signOut({ redirectUrl: appHomeUrl })} className="grid h-9 w-9 place-items-center rounded-full border border-line bg-transparent p-0 text-ink-soft hover:border-line-strong hover:bg-hover hover:text-ink">
       <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4.5 w-4.5 fill-none stroke-current" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
         <path d="M10 17l5-5-5-5M15 12H3" />
         <path d="M14 3h4a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3h-4" />
@@ -118,7 +120,7 @@ function Layout() {
       <Link to="/recipes" className="rounded-lg px-4 py-3 text-ink-soft no-underline" activeProps={{ className: navLinkActiveClass }} onClick={() => setIsMobileMenuOpen(false)}>Recipes</Link>
       <Link to="/planner" className="rounded-lg px-4 py-3 text-ink-soft no-underline" activeProps={{ className: navLinkActiveClass }} onClick={() => setIsMobileMenuOpen(false)}>Meal planner</Link>
       <Link to="/progress" className="rounded-lg px-4 py-3 text-ink-soft no-underline" activeProps={{ className: navLinkActiveClass }} onClick={() => setIsMobileMenuOpen(false)}>Progress</Link>
-      {isClerkConfigured && <Link to="/account" className="rounded-lg px-4 py-3 text-ink-soft no-underline" activeProps={{ className: navLinkActiveClass }} onClick={() => setIsMobileMenuOpen(false)}>Account</Link>}
+      {isClerkConfigured && <MobileAuthMenu onNavigate={() => setIsMobileMenuOpen(false)} />}
     </nav>}
     <main className="max-w-320 mx-auto pt-16 max-[720px]:pt-10 px-[max(4vw,32px)] max-[720px]:px-5 pb-0 overflow-x-clip">
       <ErrorBoundary key={pathname}><Outlet /></ErrorBoundary>
@@ -135,8 +137,8 @@ const recipeDetailsRoute = createRoute({ getParentRoute: () => rootRoute, path: 
 const plannerRoute = createRoute({ getParentRoute: () => rootRoute, path: '/planner', component: MealPlannerPage });
 const progressRoute = createRoute({ getParentRoute: () => rootRoute, path: '/progress', component: ProgressPage });
 const accountRoute = createRoute({ getParentRoute: () => rootRoute, path: '/account', component: AccountPage });
-// import.meta.env.BASE_URL mirrors vite.config.ts's `base` — "/" locally and on Render, "/Fitmeal/"
-// on GitHub Pages — so client-side routes resolve correctly wherever the build is served from.
+// import.meta.env.BASE_URL mirrors vite.config.ts's `base` — "/" on root hosts and the configured
+// subpath on hosts such as GitHub Pages.
 export const router = createRouter({
   routeTree: rootRoute.addChildren([homeRoute, recipesRoute, recipeDetailsRoute, plannerRoute, progressRoute, accountRoute]),
   basepath: import.meta.env.BASE_URL,

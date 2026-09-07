@@ -2,9 +2,8 @@ import { useState, type FormEvent } from 'react';
 import { useAuth } from '@clerk/react';
 import { api } from '../../shared/api';
 import { resolveImage } from '../../shared/assets';
-import type { MealPlan, MealVerdict } from '../../shared/types';
+import type { MealPlan } from '../../shared/types';
 
-const verdictClass: Record<MealVerdict, string> = { 'great fit': 'border-good text-good-text', reasonable: 'border-accent text-accent-soft', 'poor fit': 'border-poor text-poor-text' };
 const swapToggleClass = 'rounded-lg bg-transparent border border-line-strong px-4 py-2.25 text-accent text-[13px] font-semibold cursor-pointer hover:bg-hover hover:border-line-strong hover:text-accent-hover';
 const targetLabels: Record<keyof MealPlan['targets'], { label: string; detail: string }> = {
   calories: { label: 'Calories', detail: 'Daily energy' },
@@ -126,8 +125,6 @@ export function MealPlanCard({ plan, onPlanChange }: { plan: MealPlan; onPlanCha
               </>}
               {!hasDetails && <p>No preparation steps available for this one.</p>}
             </div>}
-
-            {meal.verdict && <p className={`mt-2 text-[13px] leading-[1.4] py-2 px-2.5 border-l-[3px] bg-surface-alt ${verdictClass[meal.verdict]}`}><strong>{meal.verdict}:</strong> {meal.note}</p>}
 
             {!meal.isCustom && meal.confirmed !== true && swappingTime !== meal.time && <div className="flex items-center justify-between flex-wrap gap-2.5 mt-2 pt-2.5 max-[720px]:flex-col max-[720px]:items-start">
               <span className="text-ink-soft text-[13px]">Did you have this, or something else?</span>

@@ -2,7 +2,7 @@
 
 ## Deployment status
 
-The repository is configured for deployment, but a live production deployment cannot be completed from source alone. The account owner must connect the repository and provide MongoDB, Clerk, and optional Groq credentials.
+The repository is configured for deployment, and the public GitHub Pages URL was reachable on 2026-09-07. Its published artifact predates the current release candidate, while the production API/auth integration and full-stack smoke test remain pending. The account owner must deploy the current commit and provide MongoDB, Clerk, and optional Groq credentials.
 
 `render.yaml` defines two Render services:
 
@@ -21,6 +21,7 @@ The static service includes a `/* → /index.html` rewrite so TanStack Router de
    npm install
    npm run build
    npm test
+   npm run test:e2e -- --project=public-chromium
    ```
 
 2. Push the intended release commit to a GitHub repository Render can access.
@@ -88,6 +89,8 @@ The public API hostname is not known until the API service exists. Set these var
 
 `VITE_API_URL` must include `https://` and the final `/api`. Do not put the Clerk secret key or Groq key on the static frontend.
 
+Leave `VITE_BASE_PATH` unset on Render because the static site is hosted at `/`. Set it only for a subpath host; the included GitHub Pages workflow does this automatically.
+
 Redeploy `fitmeal-web` after changing either `VITE_*` value. Vite embeds those values at build time, so a static site environment change is not visible until a new frontend build completes.
 
 ## 5. Configure Clerk for the hosted URLs
@@ -141,7 +144,7 @@ Keep the secret and test-user address in CI secrets. The authenticated project s
 
 GitHub Pages only serves static files — it cannot run the Express API or connect to MongoDB. Use it for the frontend and keep the API on Render (steps 1–3 above) or another Node host.
 
-`.github/workflows/deploy-pages.yml` builds `frontend/dist` and publishes it to Pages on every push to `main`. The frontend is already prepared for this: `vite.config.ts` sets `base: '/Fitmeal/'` when the workflow's `GITHUB_PAGES` flag is set, the router picks up that same base via `basepath: import.meta.env.BASE_URL`, and the build script copies `index.html` to `404.html` so a hard refresh on a deep link (e.g. `/Fitmeal/recipes/protein-oatmeal`) still loads the app instead of a host 404.
+`.github/workflows/deploy-pages.yml` builds `frontend/dist` and publishes it to Pages on every push to `main`. The workflow derives `VITE_BASE_PATH` from the repository name, so forks deploy under their own Pages subpath without a source-code change. The router picks up that same base via `basepath: import.meta.env.BASE_URL`, and the build script copies `index.html` to `404.html` so a hard refresh on a deep link (e.g. `/Fitmeal/recipes/protein-oatmeal`) still loads the app instead of a host 404.
 
 To turn it on:
 
@@ -155,7 +158,7 @@ To turn it on:
    | `VITE_CLERK_PUBLISHABLE_KEY` | Your Clerk publishable key |
 
    These are read at build time by the workflow, the same way `VITE_*` values are read on Render — see step 4 above for why the value must include `/api` and why a change needs a new build to take effect.
-4. Push to `main` (or run the workflow manually from the **Actions** tab) and wait for the `Deploy frontend to GitHub Pages` run to finish. The site is then live at `https://razidorra.github.io/Fitmeal/`.
+4. Push to `main` (or run the workflow manually from the **Actions** tab) and wait for the `Deploy frontend to GitHub Pages` run to finish. For this repository the site is then live at `https://razidorra.github.io/Fitmeal/`; forks use their own repository-derived subpath.
 5. Add `https://razidorra.github.io` as an allowed origin in Clerk (see step 5 above) — without it, sign-in will fail on the Pages URL even though it works on Render.
 
 The Pages workflow refuses to deploy when `VITE_API_URL` or `VITE_CLERK_PUBLISHABLE_KEY` is missing, preventing a public build whose authenticated features cannot reach the API.

@@ -2,18 +2,18 @@
 
 [![Build and tests](https://github.com/razidorra/Fitmeal/actions/workflows/ci.yml/badge.svg)](https://github.com/razidorra/Fitmeal/actions/workflows/ci.yml)
 
-**Live demo:** [razidorra.github.io/Fitmeal](https://razidorra.github.io/Fitmeal/)
+**Live demo:** [razidorra.github.io/Fitmeal](https://razidorra.github.io/Fitmeal/) (public static build)
 
 FitMeal is a full-stack meal-planning application built with TypeScript. It combines a public recipe collection with account-scoped profiles, daily meal plans, weight check-ins, rule-based progress reviews, and an optional Groq-powered nutrition assistant.
 
-> The public frontend is live on GitHub Pages. The repository is ready for a full-stack deployment, but signed-in features require the Express API, MongoDB Atlas, and matching Clerk variables described in the [deployment guide](docs/DEPLOYMENT.md).
+> The public frontend is online on GitHub Pages. The current source still needs to be redeployed and connected to the Express API, MongoDB Atlas, and matching Clerk variables before the production full-stack release is complete; see the [deployment guide](docs/DEPLOYMENT.md).
 
 FitMeal is an educational planning aid. Nutrition values are estimates and the application does not provide medical or dietetic advice.
 
 ## Features
 
 - Public home page and a responsive 24-recipe collection with search, goal/category filters, sorting, a featured recipe, nutrition details, and an optional sign-in prompt before opening the detail modal.
-- Clerk authentication with a custom account summary, polished account navigation, visible sign-out control, and per-user data ownership.
+- Clerk authentication with a custom account summary, responsive account navigation, visible desktop/mobile sign-out controls, and per-user data ownership.
 - Editable nutrition profile with calorie and macro targets calculated from the Mifflin-St Jeor formula.
 - One persisted meal plan per local calendar day, deterministic menu variety, goal-specific choices, manual refresh, and a Sunday free-choice day.
 - Per-meal confirmation or free-text replacement while preserving the original suggestion and recipe details.
@@ -152,6 +152,7 @@ After following the local setup above or the [production deployment steps](docs/
 | `VITE_CLERK_PUBLISHABLE_KEY` | Yes for account and recipe-detail features | Enables Clerk UI, recipe-detail gating, and authenticated requests |
 | `VITE_API_PROXY_TARGET` | No | Local Vite proxy target; defaults to `http://localhost:4000` |
 | `VITE_API_URL` | Production only | Public API base URL including `/api` |
+| `VITE_BASE_PATH` | Subpath deployments only | URL path where the frontend is hosted; the GitHub Pages workflow derives it from the repository name |
 
 Use the same Clerk application on the frontend and backend. If Clerk is not configured, the home page and recipe collection remain visible, but recipe details, planner, progress, account, and assistant features show configuration guidance. If only one side is configured, authenticated data requests cannot work correctly.
 
@@ -201,7 +202,7 @@ npm run test -w backend
 npm run test:watch -w backend
 ```
 
-Frontend Vitest/Testing Library tests cover configuration fallbacks, dates, filters, forms, guest prompts, modal focus, API failures, and meal confirmation/replacement. Playwright covers public navigation and is also prepared to exercise the deployed Clerk-backed profile → plan → meal log → progress journey when the deployment credentials below are supplied. The authoritative frontend type check remains `npm run build`, which runs `tsc -b` before the Vite production build. Backend tests cover calculations, meal-plan selection and uniqueness, assistant fallback guidance, validation, security responses, persisted plan/review behavior, authentication, and cross-user ownership using an ephemeral in-memory MongoDB.
+Frontend Vitest/Testing Library tests cover configuration fallbacks, dates, filters, forms, guest prompts, modal focus, API failures, and meal confirmation/replacement. Playwright covers public navigation, app-relative section links, filtering, and unknown routes; it is also prepared to exercise the deployed Clerk-backed profile → plan → meal log → progress journey when the deployment credentials below are supplied. The authoritative frontend type check remains `npm run build`, which runs `tsc -b` before the Vite production build. Backend tests cover calculations, meal-plan selection and uniqueness, assistant fallback guidance, validation, security responses, persisted plan/review behavior, authentication, and cross-user ownership using an ephemeral in-memory MongoDB.
 
 Authenticated browser tests deliberately target a deployed test environment so they exercise the real Clerk/API/MongoDB boundary. Use a dedicated Clerk test user and never commit these values:
 
@@ -258,7 +259,7 @@ Do not enter medical records or other sensitive health information. FitMeal is a
 
 ## Deployment and remaining handoff work
 
-The repository includes a Render Blueprint for a free Node web service and static frontend, plus a GitHub Actions workflow (`.github/workflows/deploy-pages.yml`) that can publish the frontend to GitHub Pages instead. Either way the API (and MongoDB) still needs to run on a Node host — GitHub Pages only serves static files. Follow [the deployment guide](docs/DEPLOYMENT.md) to create the services, configure MongoDB/Clerk/Groq, connect the frontend URL to the API, and complete the production smoke test.
+The repository includes a Render Blueprint for a free Node web service and static frontend, plus a GitHub Actions workflow (`.github/workflows/deploy-pages.yml`) that publishes the frontend to GitHub Pages. The Pages base path is derived from the repository name, so forks do not require source edits. The API (and MongoDB) still needs to run on a Node host because GitHub Pages only serves static files. Follow [the deployment guide](docs/DEPLOYMENT.md) to deploy the current source, configure MongoDB/Clerk/Groq, connect the frontend URL to the API, and complete the production smoke test.
 
 Before calling a release complete:
 

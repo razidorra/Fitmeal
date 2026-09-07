@@ -30,7 +30,7 @@ npm run test:e2e # Playwright public flow; hosted auth flow needs documented cre
 frontend/src/features/         # Page and feature-specific React components
 frontend/src/shared/           # API client, shared types, theme, reusable UI (ErrorBoundary, SiteFooter, Reveal)
 frontend/src/routes/           # TanStack Router configuration + page layout (header/nav/footer)
-frontend/src/styles.css        # Tailwind import, font/color theme tokens, the six [data-theme] blocks, @layer base
+frontend/src/styles.css        # Tailwind import, font/color theme tokens, theme/preview selectors, @layer base
 frontend/public/images/        # Static assets served as-is (recipe photos, homepage hero/background photo)
 backend/src/features/          # API feature routes, models, and services, one folder per resource
 backend/src/config/            # Environment configuration
@@ -68,6 +68,7 @@ docs/                          # SPEC.md (requirements), AUDIT.md (dated change 
 ## API and environment rules
 
 - Frontend requests use `/api` during development. Vite proxies them to `http://localhost:4000`.
+- Root deployments need no frontend path setting. Subpath deployments set `VITE_BASE_PATH`; the GitHub Pages workflow derives it from the repository name.
 - Store local secrets only in `backend/.env`; never commit it.
 - Update `backend/.env.example` when a required non-secret environment variable changes.
 - Return JSON error responses from the API.
@@ -82,4 +83,4 @@ docs/                          # SPEC.md (requirements), AUDIT.md (dated change 
 
 ## Before handoff
 
-Run `npm run build` (builds both workspaces; `tsc -b` for the frontend is the stricter, authoritative check — don't rely on an ad-hoc `tsc --noEmit` alone) and `npm test`. Do not leave generated or obsolete files in `backend/dist`; the backend build cleans this folder automatically.
+Run `npm run build` (builds both workspaces; `tsc -b` for the frontend is the stricter, authoritative check — don't rely on an ad-hoc `tsc --noEmit` alone), `npm test`, and proportional browser checks such as `npm run test:e2e -- --project=public-chromium`. Do not leave generated or obsolete files in `backend/dist`; the backend build cleans this folder automatically.

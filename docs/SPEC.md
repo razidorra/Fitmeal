@@ -3,9 +3,9 @@
 ## Document status
 
 - Project stage: final feature-complete candidate
-- Last reviewed against source: 2026-09-03
+- Last reviewed against source: 2026-09-07
 - Implementation status: complete for the scope below
-- Release status: public GitHub Pages frontend is live; full-stack deployment configuration and the production smoke test are still pending
+- Release status: the public GitHub Pages URL is online; redeploying the current source, connecting the production API/auth stack, and completing the production smoke test are still pending
 
 This document describes the current application, not an aspirational backlog. Historical implementation decisions are recorded in [AUDIT.md](AUDIT.md), and hosting instructions are in [DEPLOYMENT.md](DEPLOYMENT.md).
 
@@ -44,7 +44,7 @@ Recipe cards prompt signed-out visitors to sign in before opening the details mo
 3. Store the Clerk user ID on profiles.
 4. Verify the owning profile before reading or mutating related meal plans or check-ins.
 5. Return `404`, rather than another user's data, when an authenticated user requests a resource they do not own.
-6. Show the signed-in identity, account link, and direct Log out action in the header.
+6. Show the signed-in identity, account link, and direct Log out actions in the desktop header and mobile menu.
 
 ### Profile and targets
 
@@ -119,7 +119,7 @@ Express API  ───────────────> Clerk session verifi
 MongoDB (profiles, plans, check-ins)
 ```
 
-During local development, Vite proxies `/api` to `http://localhost:4000`. A separately hosted frontend uses `VITE_API_URL`, including the `/api` suffix.
+During local development, Vite proxies `/api` to `http://localhost:4000`. A separately hosted frontend uses `VITE_API_URL`, including the `/api` suffix. Root-hosted builds use `/` as their application base; subpath hosts set `VITE_BASE_PATH`, which the GitHub Pages workflow derives from the repository name.
 
 ## Data model
 
@@ -187,6 +187,7 @@ The API uses security headers, bounded JSON bodies, production CORS allowlisting
 - `npm run build` must pass for both workspaces.
 - `npm test` must pass without a real MongoDB database, Clerk account, or Groq request.
 - Preserve responsive behavior and all six themes for frontend changes.
+- Keep navigation, redirects, and local asset URLs relative to `import.meta.env.BASE_URL` so subpath deployments remain inside the application.
 
 ## Release acceptance checklist
 

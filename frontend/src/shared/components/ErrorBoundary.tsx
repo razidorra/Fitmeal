@@ -41,7 +41,7 @@ export class ErrorBoundary extends Component<Props, State> {
         <p>This page hit an unexpected error. You can try again, or head back to the homepage.</p>
         <div className="flex items-center gap-6 mt-6 mb-8.75 justify-center">
           <button type="button" className="primary" onClick={this.handleRetry}>Try again</button>
-          <a className="flex items-center gap-2.5 text-ink no-underline font-semibold" href={this.props.homeHref ?? '/'}>Go home</a>
+          <a className="flex items-center gap-2.5 text-ink no-underline font-semibold" href={this.props.homeHref ?? import.meta.env.BASE_URL}>Go home</a>
         </div>
       </section>
     );

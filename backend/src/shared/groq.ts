@@ -34,8 +34,8 @@ async function callWithRetry(body: unknown, signal: AbortSignal, attempt = 1): P
   return response;
 }
 
-/** Sends a chat request to Groq and returns the reply text. Set `json: true` to ask for a JSON-only reply. */
-export async function askGroq(systemInstruction: string, messages: GroqMessage[], json = false): Promise<string> {
+/** Sends a chat request to Groq and returns the reply text. */
+export async function askGroq(systemInstruction: string, messages: GroqMessage[]): Promise<string> {
   if (!env.groqApiKey) {
     throw new GroqError('The AI assistant is not set up yet — add a GROQ_API_KEY to enable it.', 503);
   }
@@ -46,7 +46,6 @@ export async function askGroq(systemInstruction: string, messages: GroqMessage[]
       model: env.groqModel,
       messages: [{ role: 'system', content: systemInstruction }, ...messages],
       max_completion_tokens: 400,
-      ...(json ? { response_format: { type: 'json_object' } } : {}),
     }, AbortSignal.timeout(12_000));
   } catch (error) {
     if (error instanceof Error && (error.name === 'TimeoutError' || error.name === 'AbortError')) {
@@ -63,9 +62,4 @@ export async function askGroq(systemInstruction: string, messages: GroqMessage[]
 
   const data = await response.json();
   return data.choices?.[0]?.message?.content ?? '';
-}
-
-/** Parses a Groq JSON reply, stripping the occasional markdown code fence some models add even in JSON mode. */
-export function parseGroqJson<T>(text: string): T {
-  return JSON.parse(text.replace(/```json|```/g, '').trim()) as T;
 }

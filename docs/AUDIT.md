@@ -1,5 +1,29 @@
 # FitMeal change protocol
 
+Entries are chronological records of the implementation as it existed on each date. Older entries
+may mention dependencies or constraints that were intentionally replaced by later work; the current
+contract lives in [SPEC.md](SPEC.md).
+
+## 2026-09-07 — Final source, hardcoding, and documentation review
+
+### Implemented
+
+- Removed the repository-name hardcoding from the Vite base path. `VITE_BASE_PATH` now controls subpath builds, and the GitHub Pages workflow derives it from the repository name so forks deploy without source edits.
+- Made theme swatches consume the same CSS custom properties as the live themes instead of duplicating palette hex values in React.
+- Fixed footer section links, the error-boundary home link, and Clerk's post-sign-out redirect so all remain inside `import.meta.env.BASE_URL` on GitHub Pages and other subpath hosts.
+- Added the missing signed-in Account/Log out actions and signed-out Log in/Create account actions to the mobile navigation.
+- Removed unused AI-era meal verdict fields/UI and the unused Groq JSON-response helper; meal replacements remain plain persisted text with the original suggestion retained.
+- Updated the README, specification, deployment guide, contributor guide, environment example, and recipe-image notes to match the final source and current deployment status.
+
+### Verification
+
+- `npm run build` passes for both workspaces.
+- `npm test` passes 13 frontend tests and 45 backend tests.
+- `npm run test:e2e -- --project=public-chromium` passes the public browser journey.
+- A `VITE_BASE_PATH=/example-fork/` production build emits prefixed HTML, CSS asset, image, and router URLs.
+- `npm audit --audit-level=moderate` reports zero known vulnerabilities.
+- `git diff --check` reports no whitespace errors, no real `.env` files are tracked, and the public GitHub Pages URL responds successfully.
+
 ## 2026-09-03 — Production hardening and automated frontend coverage
 
 ### Implemented

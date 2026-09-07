@@ -2,12 +2,17 @@ import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 
+function normalizeBasePath(configuredPath: string | undefined) {
+  const path = configuredPath?.trim().replace(/^\/+|\/+$/g, '');
+  return path ? `/${path}/` : '/';
+}
+
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   return {
-    // GitHub Pages serves this project from /Fitmeal/, not the domain root, so every built asset
-    // URL needs that prefix. Leave the dev server at "/" — GITHUB_PAGES is only set in CI.
-    base: process.env.GITHUB_PAGES ? '/Fitmeal/' : '/',
+    // Subpath hosts such as GitHub Pages provide this at build time. Root deployments and local
+    // development need no configuration, while forks can deploy under their own repository name.
+    base: normalizeBasePath(env.VITE_BASE_PATH),
     plugins: [react(), tailwindcss()],
     server: {
       port: 5173,

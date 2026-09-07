@@ -20,9 +20,9 @@ export function SiteFooter() {
       </nav>
       <nav className="grid content-start gap-3" aria-label="Learn about FitMeal">
         <span className="mb-1 text-[11px] font-bold uppercase tracking-[.12em] text-accent">Learn</span>
-        <a href="/#features" className={footerLinkClass}>What you can do</a>
-        <a href="/#how-it-works" className={footerLinkClass}>How it works</a>
-        <a href="/#nutrition-guide" className={footerLinkClass}>Nutrition guide</a>
+        <Link to="/" hash="features" className={footerLinkClass}>What you can do</Link>
+        <Link to="/" hash="how-it-works" className={footerLinkClass}>How it works</Link>
+        <Link to="/" hash="nutrition-guide" className={footerLinkClass}>Nutrition guide</Link>
       </nav>
     </div>
     <div className="mx-auto mt-12 flex max-w-320 items-center justify-between gap-4 border-t border-line pt-6 text-[12px] text-ink-muted max-[620px]:flex-col max-[620px]:items-start">

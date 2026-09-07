@@ -32,7 +32,7 @@
    and "Slate Gray", toggled via [data-theme] on <html>. Unchanged by the Tailwind migration: every
    Tailwind color utility above resolves through these, so switching themes still needs no JS beyond
    the data-theme attribute swap in shared/theme.ts. */
-:root{
+:root, [data-theme-preview="dark"]{
   --bg-page:#0a0b0b; --bg-page-rgb:10,11,11; --bg-surface:#111211; --bg-surface-alt:#1b1c1a; --bg-input:#161716; --bg-badge:#242419; --bg-icon:#28261d; --bg-hover:#2a2a24;
   --border:#383832; --border-strong:#46453f;
   --text-primary:#f5f1e8; --text-secondary:#c9c3b6; --text-muted:#918e85;
@@ -40,7 +40,7 @@
   --verdict-good:#7bbf7b; --verdict-good-text:#c7e6c7; --verdict-poor:#d97c7c; --verdict-poor-text:#f0c6c6;
   --photo-placeholder-1:#1f2019; --photo-placeholder-2:#302c1e;
 }
-:root[data-theme="light"]{
+:root[data-theme="light"], [data-theme-preview="light"]{
   --bg-page:#faf5ea; --bg-page-rgb:250,245,234; --bg-surface:#ffffff; --bg-surface-alt:#f4ecd8; --bg-input:#ffffff; --bg-badge:#f2e4c2; --bg-icon:#f0e0b8; --bg-hover:#f0e6d2;
   --border:#e3d7bd; --border-strong:#d3c2a0;
   --text-primary:#2b2416; --text-secondary:#5c5140; --text-muted:#6f6350;
@@ -48,7 +48,7 @@
   --verdict-good:#3f8f4f; --verdict-good-text:#2b6b39; --verdict-poor:#c1453f; --verdict-poor-text:#9c332e;
   --photo-placeholder-1:#efe6d4; --photo-placeholder-2:#e6d9bd;
 }
-:root[data-theme="rose"]{
+:root[data-theme="rose"], [data-theme-preview="rose"]{
   --bg-page:#0f0a0d; --bg-page-rgb:15,10,13; --bg-surface:#1a1013; --bg-surface-alt:#221419; --bg-input:#1c1216; --bg-badge:#2b1720; --bg-icon:#2b1720; --bg-hover:#33191f;
   --border:#3a2028; --border-strong:#4a2831;
   --text-primary:#f5e9ec; --text-secondary:#cbb0b8; --text-muted:#8f7278;
@@ -56,7 +56,7 @@
   --verdict-good:#7bbf7b; --verdict-good-text:#c7e6c7; --verdict-poor:#d97c7c; --verdict-poor-text:#f0c6c6;
   --photo-placeholder-1:#1f1418; --photo-placeholder-2:#2c1820;
 }
-:root[data-theme="ocean"]{
+:root[data-theme="ocean"], [data-theme-preview="ocean"]{
   --bg-page:#070b10; --bg-page-rgb:7,11,16; --bg-surface:#101720; --bg-surface-alt:#161e28; --bg-input:#131b24; --bg-badge:#1a2634; --bg-icon:#1a2634; --bg-hover:#1f2c3a;
   --border:#223040; --border-strong:#2c3d50;
   --text-primary:#e9f1f8; --text-secondary:#aebdcc; --text-muted:#728294;
@@ -64,7 +64,7 @@
   --verdict-good:#7bbf7b; --verdict-good-text:#c7e6c7; --verdict-poor:#d97c7c; --verdict-poor-text:#f0c6c6;
   --photo-placeholder-1:#121a22; --photo-placeholder-2:#1a2534;
 }
-:root[data-theme="forest"]{
+:root[data-theme="forest"], [data-theme-preview="forest"]{
   --bg-page:#090c09; --bg-page-rgb:9,12,9; --bg-surface:#121712; --bg-surface-alt:#182018; --bg-input:#141a14; --bg-badge:#1c2a1c; --bg-icon:#1c2a1c; --bg-hover:#203020;
   --border:#253325; --border-strong:#30422f;
   --text-primary:#ecf3ec; --text-secondary:#b6c7b4; --text-muted:#7c8f79;
@@ -72,7 +72,7 @@
   --verdict-good:#7fc879; --verdict-good-text:#c7e6c7; --verdict-poor:#d97c7c; --verdict-poor-text:#f0c6c6;
   --photo-placeholder-1:#131a13; --photo-placeholder-2:#1c281c;
 }
-:root[data-theme="slate"]{
+:root[data-theme="slate"], [data-theme-preview="slate"]{
   --bg-page:#0a0b0c; --bg-page-rgb:10,11,12; --bg-surface:#131415; --bg-surface-alt:#1a1c1e; --bg-input:#151718; --bg-badge:#202325; --bg-icon:#202325; --bg-hover:#26292c;
   --border:#2c2f32; --border-strong:#383c40;
   --text-primary:#eef0f1; --text-secondary:#b8bec2; --text-muted:#7c8388;

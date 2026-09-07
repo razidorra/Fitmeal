@@ -13,16 +13,13 @@ export function AccountPage() {
   return <AccountContent />;
 }
 
-// swatchBg/swatchAccent are each theme's actual --bg-page/--accent literal, not a live var()
-// reference — a swatch needs to preview a theme that might not be the active one, so it can't
-// follow the current theme's variables the way the rest of the page does.
-const themeOptions: Array<{ value: Theme; label: string; swatchBg: string; swatchAccent: string }> = [
-  { value: 'dark', label: 'Midnight Gold', swatchBg: '#0a0b0b', swatchAccent: '#dfcc86' },
-  { value: 'light', label: 'Warm Light', swatchBg: '#ffffff', swatchAccent: '#b8860b' },
-  { value: 'rose', label: 'Rose Pink', swatchBg: '#1a1013', swatchAccent: '#e893ac' },
-  { value: 'ocean', label: 'Ocean Blue', swatchBg: '#101720', swatchAccent: '#6fb3e0' },
-  { value: 'forest', label: 'Forest Green', swatchBg: '#121712', swatchAccent: '#7fc879' },
-  { value: 'slate', label: 'Slate Gray', swatchBg: '#131415', swatchAccent: '#9db1bd' },
+const themeOptions: Array<{ value: Theme; label: string }> = [
+  { value: 'dark', label: 'Midnight Gold' },
+  { value: 'light', label: 'Warm Light' },
+  { value: 'rose', label: 'Rose Pink' },
+  { value: 'ocean', label: 'Ocean Blue' },
+  { value: 'forest', label: 'Forest Green' },
+  { value: 'slate', label: 'Slate Gray' },
 ];
 
 function recentCheckinCount(checkins: Checkin[]) {
@@ -178,9 +175,9 @@ function AccountContent() {
       <p className="text-ink-soft mb-4.5">Your choice is saved for this account on this device and applied across FitMeal.</p>
       <div className="grid grid-cols-3 max-[720px]:grid-cols-1 gap-3.5">
         {themeOptions.map((option) => <button key={option.value} type="button" className={`flex items-center gap-3.5 rounded-xl py-4 px-5 border bg-surface-alt text-ink font-semibold hover:bg-hover hover:border-line-strong ${theme === option.value ? 'border-accent shadow-[0_0_0_2px_var(--bg-badge)]' : 'border-line-strong'}`} onClick={() => handleThemeChange(option.value)}>
-          <span aria-hidden="true" className="relative w-8.5 h-5 shrink-0">
-            <span aria-hidden="true" className="absolute top-0 left-0 w-5 h-5 rounded-full border-2 border-line-strong" style={{ background: option.swatchBg }} />
-            <span aria-hidden="true" className="absolute top-0 left-3.5 w-5 h-5 rounded-full border-2 border-line-strong" style={{ background: option.swatchAccent }} />
+          <span aria-hidden="true" data-theme-preview={option.value} className="relative w-8.5 h-5 shrink-0">
+            <span aria-hidden="true" className="absolute top-0 left-0 w-5 h-5 rounded-full border-2 border-line-strong bg-page" />
+            <span aria-hidden="true" className="absolute top-0 left-3.5 w-5 h-5 rounded-full border-2 border-line-strong bg-accent" />
           </span>
           {option.label}
         </button>)}
