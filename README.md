@@ -162,7 +162,7 @@ Recipe cards and direct `/recipes/:recipeSlug` links both require a signed-in Cl
 
 ## How meal planning works
 
-The planner accepts age, a Mifflin–St Jeor equation choice, height, weight, activity level, and goal. That formula publishes male (+5) and female (−161) constants; the “Other / prefer not to say” option explicitly uses −161 rather than silently falling through. The backend calculates a daily target, then assigns one Breakfast, Lunch, Snack, and Dinner. Menu selection is deterministic from the profile goal, local date, and meal slot, so reloads preserve a day while different days rotate through the available pool.
+The planner accepts age, a Mifflin–St Jeor equation choice, height, weight, activity level, and goal. That formula publishes male (+5) and female (−161) constants; the “Other / prefer not to say” option explicitly uses −161 rather than silently falling through. The backend calculates a daily target, then assigns one Breakfast, Lunch, Snack, and Dinner. Menu selection is deterministic from the profile goal, local date, and meal slot, so reloads preserve a day while each slot rotates to a different suggestion on the following date. While the goal stays unchanged, a dish can return later but never in the same slot two days in a row.
 
 The first planner visit on a date creates that day's plan. Later visits return the saved plan, preserving confirmations and replacements. **Refresh plan** intentionally replaces the current day's saved plan. A compound database index guarantees one plan per profile and date. Every Sunday is represented as a free-choice day without fixed meals, calorie displays, or confirmation controls.
 

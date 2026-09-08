@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { SignInButton, SignUpButton } from '@clerk/react';
 import { useModalDialog } from '../../shared/hooks/useModalDialog';
 
@@ -7,14 +6,6 @@ import { useModalDialog } from '../../shared/hooks/useModalDialog';
 // purely a sign-up nudge, matching the guest-prompt pattern used on Planner/Progress.
 export function SignInPromptModal({ onClose, isAuthConfigured = true }: { onClose: () => void; isAuthConfigured?: boolean }) {
   const dialogRef = useModalDialog(onClose);
-  useEffect(() => {
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-
-    return () => {
-      document.body.style.overflow = previousOverflow;
-    };
-  }, []);
 
   return <div className="fixed inset-0 bg-[rgba(6,6,5,.82)] backdrop-blur-sm flex items-center justify-center p-8 max-[560px]:p-4 z-100 animate-[recipe-modal-fade_180ms_ease]" onClick={onClose}>
     <div ref={dialogRef} tabIndex={-1} className="relative bg-surface border border-line rounded-3xl max-w-115 w-full py-11 px-10 max-[560px]:px-6 text-center shadow-[0_30px_90px_rgba(0,0,0,.5)]" role="dialog" aria-modal="true" aria-labelledby="sign-in-dialog-title" onClick={(event) => event.stopPropagation()}>

@@ -1,19 +1,9 @@
-import { useEffect } from 'react';
 import type { Recipe } from './recipes';
 import { resolveImage } from '../../shared/assets';
 import { useModalDialog } from '../../shared/hooks/useModalDialog';
 
 export function RecipeModal({ recipe, onClose }: { recipe: Recipe; onClose: () => void }) {
   const dialogRef = useModalDialog(onClose);
-  // Lock page scroll while the modal is open, and let Escape close it like the backdrop click does.
-  useEffect(() => {
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-
-    return () => {
-      document.body.style.overflow = previousOverflow;
-    };
-  }, []);
 
   const stats = [[recipe.nutrition.calories, 'kcal', 'Calories'], [recipe.nutrition.protein, 'g', 'Protein'], [recipe.nutrition.carbs, 'g', 'Carbs'], [recipe.nutrition.fats, 'g', 'Fat']] as const;
 

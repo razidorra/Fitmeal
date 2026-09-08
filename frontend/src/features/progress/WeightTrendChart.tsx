@@ -19,8 +19,12 @@ export function WeightTrendChart({ checkins }: { checkins: Checkin[] }) {
   const chartMaximum = highestWeight + rangePadding;
   const plotWidth = chartWidth - padding.left - padding.right;
   const plotHeight = chartHeight - padding.top - padding.bottom;
+  const timestamps = checkins.map((checkin) => new Date(checkin.date).getTime());
+  const firstTimestamp = timestamps[0];
+  const timestampRange = timestamps.at(-1)! - firstTimestamp;
   const points = checkins.map((checkin, index) => {
-    const x = padding.left + (checkins.length === 1 ? plotWidth / 2 : (index / (checkins.length - 1)) * plotWidth);
+    const datePosition = timestampRange > 0 ? (timestamps[index] - firstTimestamp) / timestampRange : 0.5;
+    const x = padding.left + datePosition * plotWidth;
     const y = padding.top + ((chartMaximum - checkin.weightKg) / (chartMaximum - chartMinimum)) * plotHeight;
     return { x, y, checkin };
   });

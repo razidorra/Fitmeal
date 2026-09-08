@@ -4,6 +4,26 @@ Entries are chronological records of the implementation as it existed on each da
 may mention dependencies or constraints that were intentionally replaced by later work; the current
 contract lives in [SPEC.md](SPEC.md).
 
+## 2026-09-08 — Senior reliability and accessibility review
+
+### Implemented
+
+- Added a recoverable Account loading error instead of silently presenting an API failure as an empty profile, and made the saved FitMeal profile name authoritative in the Account identity card.
+- Cleared the shared header profile name immediately after FitMeal data deletion and narrowed profile-name events without an unchecked type assertion.
+- Made account theme persistence tolerate unavailable or blocked browser storage while still applying the selected theme for the current session.
+- Centralized modal scroll locking in the existing focus-management hook, removing duplicated lifecycle code while preserving Escape handling, focus trapping, and focus restoration.
+- Added Escape-key dismissal and trigger-focus restoration to the mobile navigation, with state-specific accessible button labels.
+- Corrected the progress chart so horizontally spaced points represent real elapsed time rather than treating irregular check-in dates as evenly spaced.
+- Narrowed unknown API error payloads before reading server messages instead of relying on an implicit untyped response body.
+- Expanded undersized goal-specific meal pools and replaced collision-prone date hashing with deterministic day-by-day rotation, so every meal slot changes on the following date for the same goal but remains stable across reloads of the same date.
+
+### Verification
+
+- `npm run build` passes for both workspaces.
+- `npm test` passes 17 frontend tests and 47 backend tests.
+- `npm run test:e2e -- --project=public-chromium` passes both public browser flows, including the mobile keyboard interaction.
+- `git diff --check` reports no whitespace errors.
+
 ## 2026-09-07 — Final source, hardcoding, and documentation review
 
 ### Implemented

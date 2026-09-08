@@ -7,6 +7,7 @@ import { getLocalDateString } from '../../shared/date';
 import { clearStoredTheme, getStoredTheme, setTheme, type Theme } from '../../shared/theme';
 import type { Checkin, MealPlan, Profile } from '../../shared/types';
 import { PageLoading } from '../../shared/components/PageLoading';
+import { announceProfileName } from '../../shared/profileEvents';
 
 export function AccountPage() {
   if (!isClerkConfigured) return <section className="text-center py-22.5"><h1 className="text-[54px]">Sign-in is not configured.</h1><p>Set <code>VITE_CLERK_PUBLISHABLE_KEY</code> to enable accounts.</p></section>;
@@ -35,7 +36,9 @@ function AccountContent() {
   const [plan, setPlan] = useState<MealPlan | null>(null);
   const [checkins, setCheckins] = useState<Checkin[] | null>(null);
   const [progressError, setProgressError] = useState('');
+  const [accountError, setAccountError] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [loadAttempt, setLoadAttempt] = useState(0);
   const [theme, setThemeState] = useState<Theme>('dark');
   const [isConfirmingDeletion, setIsConfirmingDeletion] = useState(false);
   const [isDeletingData, setIsDeletingData] = useState(false);
@@ -49,6 +52,7 @@ function AccountContent() {
   useEffect(() => {
     if (!authLoaded) return;
     if (!isSignedIn) { setIsLoading(false); return; }
+    setAccountError('');
 
     async function load() {
       try {
@@ -68,13 +72,20 @@ function AccountContent() {
             setProgressError(error instanceof Error ? error.message : 'Failed to fetch');
           }
         }
+      } catch (error) {
+        setAccountError(error instanceof Error ? error.message : 'Could not load your account.');
       } finally {
         setIsLoading(false);
       }
     }
 
     void load();
-  }, [authLoaded, isSignedIn, getToken]);
+  }, [authLoaded, isSignedIn, getToken, loadAttempt]);
+
+  function handleRetryLoad() {
+    setIsLoading(true);
+    setLoadAttempt((currentAttempt) => currentAttempt + 1);
+  }
 
   function handleThemeChange(next: Theme) {
     if (!user) return;
@@ -91,6 +102,7 @@ function AccountContent() {
       await api.deleteProfile(await getToken(), profile._id);
       clearStoredTheme(user.id);
       setThemeState('dark');
+      announceProfileName('');
       setProfile(null);
       setPlan(null);
       setCheckins(null);
@@ -114,7 +126,15 @@ function AccountContent() {
     </div>
   </section>;
 
+  if (accountError) return <section className="mx-auto max-w-160 rounded-3xl border border-line bg-surface py-16 px-8 text-center shadow-[0_20px_60px_rgba(0,0,0,.12)]">
+    <span className="inline-flex rounded-full border border-poor bg-surface-alt px-3.5 py-2 text-[11px] font-bold uppercase tracking-[.1em] text-poor-text">Account unavailable</span>
+    <h1 className="text-[clamp(40px,5vw,60px)]">We couldn’t load your account.</h1>
+    <p role="alert" className="mx-auto mb-7 max-w-125 text-ink-soft">{accountError}</p>
+    <button type="button" onClick={handleRetryLoad} className="rounded-full">Try again</button>
+  </section>;
+
   const isPlanToday = plan?.date === getLocalDateString();
+  const accountDisplayName = profile?.name || user?.fullName || user?.username || 'FitMeal member';
   const panelLinkClass = 'text-accent font-bold text-[13px] no-underline hover:underline';
   const summaryStrongClass = 'block font-display font-semibold text-[28px] text-accent';
   const summarySpanClass = 'text-ink-soft text-[13px]';
@@ -125,10 +145,12 @@ function AccountContent() {
       <h1>Everything in one place.</h1>
     </section>
     <div className="flex items-center gap-5 rounded-2xl py-6.5 px-7 border border-line bg-surface-alt mb-5.5 shadow-[0_18px_50px_rgba(0,0,0,.1)] max-[720px]:flex-col max-[720px]:items-start max-[720px]:text-left">
-      <img className="w-14 h-14 rounded-full object-cover bg-hover" src={user?.imageUrl} alt="" />
+      {user?.imageUrl
+        ? <img className="w-14 h-14 rounded-full object-cover bg-hover" src={user.imageUrl} alt="" />
+        : <span className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-accent font-display text-xl font-bold text-on-accent">{accountDisplayName.charAt(0).toUpperCase()}</span>}
       <div>
         <span className="uppercase tracking-wider font-sans font-semibold text-[11px] text-accent">Your FitMeal account</span>
-        <h2 className="font-display font-semibold text-2xl mt-1.5 mb-1">{user?.fullName || user?.username || 'FitMeal member'}</h2>
+        <h2 className="font-display font-semibold text-2xl mt-1.5 mb-1">{accountDisplayName}</h2>
         <p className="m-0 text-ink-soft text-sm">{user?.primaryEmailAddress?.emailAddress}</p>
       </div>
     </div>

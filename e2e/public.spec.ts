@@ -15,3 +15,17 @@ test('public navigation, recipe filtering, and unknown routes work', async ({ pa
   await page.goto('./this-route-does-not-exist');
   await expect(page.getByRole('heading', { name: /page not found/i })).toBeVisible();
 });
+
+test('mobile navigation closes with Escape and restores trigger focus', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('./');
+
+  const menuButton = page.getByRole('button', { name: 'Open navigation' });
+  await menuButton.click();
+  await expect(page.getByRole('button', { name: 'Close navigation' })).toHaveAttribute('aria-expanded', 'true');
+  await expect(page.getByRole('navigation', { name: 'Mobile navigation' })).toBeVisible();
+
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('button', { name: 'Open navigation' })).toBeFocused();
+  await expect(page.getByRole('navigation', { name: 'Mobile navigation' })).toBeHidden();
+});

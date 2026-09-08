@@ -37,7 +37,7 @@ const SHARES: Record<string, { calorieShare: number; proteinShare: number }> = {
 const mealPool: Record<string, MealTemplate[]> = {
   Breakfast: [
     {
-      time: 'Breakfast', title: 'Greek yogurt power bowl', ingredients: 'Greek yogurt, oats, berries, chia seeds', image: photo('1725883691833-97103ecd582a'), goals: ['maintain'],
+      time: 'Breakfast', title: 'Greek yogurt power bowl', ingredients: 'Greek yogurt, oats, berries, chia seeds', image: photo('1725883691833-97103ecd582a'), goals: ['lose', 'maintain'],
       ingredientsList: ['200 g Greek yogurt', '60 g rolled oats', '100 g mixed berries', '1 tbsp chia seeds', '1 tsp honey (optional)'],
       steps: ['Add the oats to the bottom of a bowl.', 'Spoon the Greek yogurt over the oats.', 'Top with mixed berries and chia seeds.', 'Drizzle with honey if using, and serve immediately or chill overnight.'],
     },
@@ -47,14 +47,19 @@ const mealPool: Record<string, MealTemplate[]> = {
       steps: ['Cook the oats with milk over low heat, stirring, for 5 minutes.', 'Stir in the protein powder once the oats have cooled slightly.', 'Top with banana, blueberries, and walnuts.', 'Serve warm.'],
     },
     {
-      time: 'Breakfast', title: 'Peanut butter protein oats', ingredients: 'Oats, Greek yogurt, banana, peanut butter, chia seeds', image: photo('1682622110332-d50f50b7146d'), goals: ['gain'],
+      time: 'Breakfast', title: 'Peanut butter protein oats', ingredients: 'Oats, Greek yogurt, banana, peanut butter, chia seeds', image: photo('1682622110332-d50f50b7146d'), goals: ['maintain', 'gain'],
       ingredientsList: ['80 g rolled oats', '200 g Greek yogurt', '1 banana', '25 g peanut butter', '150 ml milk', '1 tsp chia seeds', 'Cinnamon'],
       steps: ['Mix oats, milk, yogurt, and cinnamon in a bowl.', 'Top with sliced banana, peanut butter, and chia seeds.', 'Eat immediately or chill overnight for a thicker texture.'],
+    },
+    {
+      time: 'Breakfast', title: 'Date pistachio breakfast parfait', ingredients: 'Greek yogurt, dates, pistachios, oats, banana', image: localPhoto('date-pistachio-parfait'), goals: ['gain'],
+      ingredientsList: ['250 g Greek yogurt', '50 g rolled oats', '1 banana, sliced', '3 medjool dates, chopped', '25 g pistachios, chopped', '1 tsp honey'],
+      steps: ['Spoon half of the yogurt into a glass or bowl.', 'Layer in the oats, banana, and chopped dates.', 'Add the remaining yogurt.', 'Top with pistachios and honey, then serve or chill overnight.'],
     },
   ],
   Lunch: [
     {
-      time: 'Lunch', title: 'Mediterranean chicken bowl', ingredients: 'Chicken, quinoa, roasted vegetables, tahini', image: photo('1688923130928-8468d6af8d7e'), goals: ['maintain'],
+      time: 'Lunch', title: 'Mediterranean chicken bowl', ingredients: 'Chicken, quinoa, roasted vegetables, tahini', image: photo('1688923130928-8468d6af8d7e'), goals: ['maintain', 'gain'],
       ingredientsList: ['150 g grilled chicken breast, sliced', '80 g cooked quinoa', '100 g roasted mixed vegetables (zucchini, pepper, red onion)', '1 tbsp tahini', 'Lemon juice and parsley'],
       steps: ['Season and grill the chicken breast, then slice it.', 'Roast the mixed vegetables at 200°C for 20 minutes.', 'Assemble the quinoa, vegetables, and chicken in a bowl.', 'Drizzle with tahini and lemon juice, and finish with parsley.'],
     },
@@ -81,12 +86,12 @@ const mealPool: Record<string, MealTemplate[]> = {
   ],
   Snack: [
     {
-      time: 'Snack', title: 'Apple & peanut butter', ingredients: 'Apple slices with natural peanut butter', image: photo('1609404543812-4b9fdda52a55'), goals: ['maintain'],
+      time: 'Snack', title: 'Apple & peanut butter', ingredients: 'Apple slices with natural peanut butter', image: photo('1609404543812-4b9fdda52a55'), goals: ['maintain', 'gain'],
       ingredientsList: ['1 medium apple, sliced', '2 tbsp natural peanut butter'],
       steps: ['Core and slice the apple into wedges.', 'Serve with peanut butter for dipping.'],
     },
     {
-      time: 'Snack', title: 'Berry yogurt parfait', ingredients: 'Greek yogurt, mixed berries, granola', image: localPhoto('berry-yogurt-parfait'), goals: ['lose'],
+      time: 'Snack', title: 'Berry yogurt parfait', ingredients: 'Greek yogurt, mixed berries, granola', image: localPhoto('berry-yogurt-parfait'), goals: ['lose', 'maintain'],
       ingredientsList: ['200 g Greek yogurt', '100 g mixed berries', '40 g gluten-free granola', '1 tsp honey (optional)'],
       steps: ['Spoon a layer of Greek yogurt into a glass.', 'Add a layer of granola, then a layer of mixed berries.', 'Repeat the layers until the glass is full.'],
     },
@@ -108,7 +113,7 @@ const mealPool: Record<string, MealTemplate[]> = {
   ],
   Dinner: [
     {
-      time: 'Dinner', title: 'Salmon rice plate', ingredients: 'Salmon, brown rice, broccoli, lemon', image: photo('1623800849430-13c191263e9f'), goals: ['maintain'],
+      time: 'Dinner', title: 'Salmon rice plate', ingredients: 'Salmon, brown rice, broccoli, lemon', image: photo('1623800849430-13c191263e9f'), goals: ['maintain', 'gain'],
       ingredientsList: ['150 g salmon fillet', '150 g cooked brown rice', '120 g steamed broccoli', '1 tsp olive oil', 'Lemon wedge'],
       steps: ['Season the salmon fillet with salt, pepper, and a little olive oil.', 'Bake the salmon at 200°C for 12–15 minutes, or until cooked through.', 'Steam the broccoli until tender.', 'Serve the salmon over brown rice with broccoli, finished with a squeeze of lemon.'],
     },
@@ -135,26 +140,33 @@ const mealPool: Record<string, MealTemplate[]> = {
   ],
 };
 
-// Simple, stable string hash (djb2) — deterministic, so the same day + goal always picks the same
-// meal (the planner route is get-or-create per day: reloading the page shouldn't show a different
-// plan than the one already saved), while different days spread across each goal's pool.
+// Simple, stable string hash (djb2). It supplies a different starting point for each goal and slot;
+// the calendar-day number then advances through that pool one item at a time. This keeps a saved
+// date deterministic while guaranteeing that consecutive dates do not select the same dish when a
+// pool has at least two options.
 function hashString(input: string): number {
   let hash = 5381;
   for (let index = 0; index < input.length; index += 1) hash = ((hash << 5) + hash + input.charCodeAt(index)) >>> 0;
   return hash;
 }
 
+function getCalendarDayNumber(date: string): number {
+  const [year, month, day] = date.split('-').map(Number);
+  return Math.floor(Date.UTC(year, month - 1, day) / 86_400_000);
+}
+
 function pickMeal(time: string, goal: Goal, date: string): MealTemplate {
   const pool = mealPool[time];
   const matching = pool.filter((template) => template.goals.includes(goal));
   const options = matching.length > 0 ? matching : pool;
-  return options[hashString(`${date}-${goal}-${time}`) % options.length];
+  const index = (getCalendarDayNumber(date) + hashString(`${goal}-${time}`)) % options.length;
+  return options[index];
 }
 
 // A weekly flex day (every Sunday) — no fixed menu that day, just a reminder that one planned,
 // guilt-free meal is a normal part of a sustainable eating pattern rather than a slip-up.
 function isCheatDay(date: string): boolean {
-  return new Date(`${date}T00:00:00`).getDay() === 0;
+  return new Date(`${date}T00:00:00Z`).getUTCDay() === 0;
 }
 
 const mealTimes = ['Breakfast', 'Lunch', 'Snack', 'Dinner'];

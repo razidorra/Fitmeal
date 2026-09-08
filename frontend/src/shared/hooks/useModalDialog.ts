@@ -9,11 +9,14 @@ export function useModalDialog(onClose: () => void) {
     const dialog = dialogRef.current;
     const previouslyFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     if (!dialog) return;
+    const activeDialog = dialog;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
 
     const focusTimer = window.requestAnimationFrame(() => {
-      const firstFocusableElement = dialog.querySelector<HTMLElement>(focusableSelector);
+      const firstFocusableElement = activeDialog.querySelector<HTMLElement>(focusableSelector);
       if (firstFocusableElement) firstFocusableElement.focus();
-      else dialog.focus();
+      else activeDialog.focus();
     });
 
     function handleKeyDown(event: KeyboardEvent) {
@@ -24,10 +27,10 @@ export function useModalDialog(onClose: () => void) {
       }
 
       if (event.key !== 'Tab') return;
-      const focusableElements = Array.from(dialog!.querySelectorAll<HTMLElement>(focusableSelector));
+      const focusableElements = Array.from(activeDialog.querySelectorAll<HTMLElement>(focusableSelector));
       if (focusableElements.length === 0) {
         event.preventDefault();
-        dialog!.focus();
+        activeDialog.focus();
         return;
       }
 
@@ -46,6 +49,7 @@ export function useModalDialog(onClose: () => void) {
     return () => {
       window.cancelAnimationFrame(focusTimer);
       window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = previousOverflow;
       previouslyFocused?.focus();
     };
   }, [onClose]);

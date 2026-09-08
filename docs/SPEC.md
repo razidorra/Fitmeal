@@ -3,7 +3,7 @@
 ## Document status
 
 - Project stage: final feature-complete candidate
-- Last reviewed against source: 2026-09-07
+- Last reviewed against source: 2026-09-08
 - Implementation status: complete for the scope below
 - Release status: the public GitHub Pages URL is online; redeploying the current source, connecting the production API/auth stack, and completing the production smoke test are still pending
 
@@ -35,7 +35,7 @@ Recipe cards prompt signed-out visitors to sign in before opening the details mo
 4. Show collection statistics, a featured recipe, result counts, photos, tags, preparation time, servings, and estimated nutrition per serving.
 5. Open ingredients, steps, health context, and nutrition in a modal for an allowed recipe-card interaction.
 6. Preserve the recipe detail route for direct links and unknown-recipe handling.
-7. Provide accessible mobile navigation and page-level error recovery.
+7. Provide accessible mobile navigation with Escape-key dismissal/focus restoration and page-level error recovery.
 
 ### Authentication and ownership
 
@@ -59,7 +59,7 @@ Recipe cards prompt signed-out visitors to sign in before opening the details mo
 
 1. Get or create one stored plan for a supplied local date in `YYYY-MM-DD` form.
 2. Create a new current-day plan automatically when the signed-in planner loads.
-3. Select one Breakfast, Lunch, Snack, and Dinner deterministically from date, goal, and slot.
+3. Select one Breakfast, Lunch, Snack, and Dinner deterministically from date, goal, and slot; every goal/slot pool has at least two options and, while the goal is unchanged, the same slot never repeats on consecutive dates.
 4. Use a leaner pool for lose and a heartier pool for maintain/gain so goal changes affect dishes as well as portions.
 5. Preserve the stored plan, confirmations, and replacements across reloads.
 6. Let **Refresh plan** replace the current dated plan intentionally.
@@ -84,7 +84,7 @@ Recipe cards prompt signed-out visitors to sign in before opening the details mo
 4. Include confirmed and changed meal counts from the latest plan.
 5. Generate a deterministic written review from those statistics without AI.
 6. Require two check-ins before presenting a directional verdict.
-7. Plot stored measurements in a theme-aware trend chart and explain that individual readings can vary with timing and hydration.
+7. Plot stored measurements proportionally by elapsed time in a theme-aware trend chart and explain that individual readings can vary with timing and hydration.
 
 ### Assistant
 
@@ -104,6 +104,7 @@ Recipe cards prompt signed-out visitors to sign in before opening the details mo
 4. Use theme-backed Tailwind utilities for application colors, with the fixed-color phone mockup as the only documented design exception.
 5. Keep shared navigation and footer usable when routed page content throws.
 6. Let a signed-in user permanently delete their owned profile, generated plans, and check-ins after a second confirmation; clear the local theme preference but leave the separately managed Clerk identity active.
+7. Prefer the saved FitMeal profile name in account surfaces and provide a retry state when the account API cannot be loaded.
 
 ## Architecture
 

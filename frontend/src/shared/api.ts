@@ -6,6 +6,11 @@ export function getApiBaseUrl(configuredUrl: string | undefined = import.meta.en
 
 const apiBaseUrl = getApiBaseUrl();
 
+function getErrorMessage(errorBody: unknown): string | null {
+  if (typeof errorBody !== 'object' || errorBody === null || !('message' in errorBody)) return null;
+  return typeof errorBody.message === 'string' && errorBody.message.trim() ? errorBody.message : null;
+}
+
 async function request<T>(token: string | null, path: string, options?: RequestInit): Promise<T> {
   const response = await fetch(`${apiBaseUrl}${path}`, {
     ...options,
@@ -17,8 +22,8 @@ async function request<T>(token: string | null, path: string, options?: RequestI
   });
 
   if (!response.ok) {
-    const errorBody = await response.json().catch(() => null);
-    throw new Error(errorBody?.message ?? 'Something went wrong. Please try again.');
+    const errorBody: unknown = await response.json().catch(() => null);
+    throw new Error(getErrorMessage(errorBody) ?? 'Something went wrong. Please try again.');
   }
 
   if (response.status === 204) return undefined as T;

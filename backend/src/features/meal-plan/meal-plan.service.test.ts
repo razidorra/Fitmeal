@@ -103,6 +103,29 @@ describe('buildPlan', () => {
     expect(new Set(menus).size).toBeGreaterThan(1);
   });
 
+  it('never repeats the previous day\'s suggestion in any slot for any goal', () => {
+    const dates = Array.from({ length: 30 }, (_, dayOffset) => (
+      new Date(Date.UTC(2026, 7, 17 + dayOffset)).toISOString().slice(0, 10)
+    ));
+    const goals = ['lose', 'maintain', 'gain'] as const;
+
+    for (const goal of goals) {
+      const dailyTitles = dates.map((date) => (
+        buildPlan({ ...baseProfile, goal }, date).meals.map((meal) => meal.title)
+      ));
+
+      for (let dayIndex = 1; dayIndex < dailyTitles.length; dayIndex += 1) {
+        for (let mealIndex = 0; mealIndex < dailyTitles[dayIndex].length; mealIndex += 1) {
+          expect(dailyTitles[dayIndex][mealIndex]).not.toBe(dailyTitles[dayIndex - 1][mealIndex]);
+        }
+      }
+    }
+  });
+
+  it('keeps suggestions stable when the same date is loaded again', () => {
+    expect(buildPlan(baseProfile, aMonday).meals).toEqual(buildPlan(baseProfile, aMonday).meals);
+  });
+
   it('gives "lose" and "gain" profiles different dishes on the same day', () => {
     const lose = buildPlan({ ...baseProfile, goal: 'lose' }, aMonday).meals.map((meal) => meal.title);
     const gain = buildPlan({ ...baseProfile, goal: 'gain' }, aMonday).meals.map((meal) => meal.title);

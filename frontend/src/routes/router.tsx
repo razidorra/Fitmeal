@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createRootRoute, createRoute, createRouter, Link, Outlet, useRouterState } from '@tanstack/react-router';
 import { Show, SignInButton, SignUpButton, useAuth, useClerk, useUser } from '@clerk/react';
 import { HomePage } from '../features/home/HomePage';
@@ -40,7 +40,9 @@ function AccountStatus() {
     }
 
     function handleProfileNameChange(event: Event) {
-      setProfileName((event as CustomEvent<string>).detail);
+      if (event instanceof CustomEvent && typeof event.detail === 'string') {
+        setProfileName(event.detail);
+      }
     }
 
     void loadProfileName();
@@ -69,12 +71,26 @@ function AccountStatus() {
 
 function Layout() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const mobileMenuButtonRef = useRef<HTMLButtonElement>(null);
   const pathname = useRouterState({ select: (state) => state.location.pathname });
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
     setIsMobileMenuOpen(false);
   }, [pathname]);
+
+  useEffect(() => {
+    if (!isMobileMenuOpen) return;
+
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key !== 'Escape') return;
+      setIsMobileMenuOpen(false);
+      mobileMenuButtonRef.current?.focus();
+    }
+
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [isMobileMenuOpen]);
 
   // The boundary wraps only the routed page content, not the header/nav/footer — so a crash on
   // one page still leaves navigation usable to get somewhere else.
@@ -104,8 +120,9 @@ function Layout() {
           <Show when="signed-in"><AccountStatus /></Show>
         </div>}
         <button
+          ref={mobileMenuButtonRef}
           type="button"
-          aria-label="Toggle navigation"
+          aria-label={isMobileMenuOpen ? 'Close navigation' : 'Open navigation'}
           aria-controls="mobile-navigation"
           aria-expanded={isMobileMenuOpen}
           onClick={() => setIsMobileMenuOpen((current) => !current)}
@@ -115,7 +132,7 @@ function Layout() {
         </button>
       </div>
     </header>
-    {isMobileMenuOpen && <nav id="mobile-navigation" className="sticky top-18 z-40 hidden max-[720px]:grid gap-1 border-b border-line bg-surface/98 px-5 py-3 shadow-xl animate-[mobile-menu-enter_180ms_ease-out]">
+    {isMobileMenuOpen && <nav id="mobile-navigation" aria-label="Mobile navigation" className="sticky top-18 z-40 hidden max-[720px]:grid gap-1 border-b border-line bg-surface/98 px-5 py-3 shadow-xl animate-[mobile-menu-enter_180ms_ease-out]">
       <Link to="/" className="rounded-lg px-4 py-3 text-ink-soft no-underline" activeProps={{ className: navLinkActiveClass }} onClick={() => setIsMobileMenuOpen(false)}>Home</Link>
       <Link to="/recipes" className="rounded-lg px-4 py-3 text-ink-soft no-underline" activeProps={{ className: navLinkActiveClass }} onClick={() => setIsMobileMenuOpen(false)}>Recipes</Link>
       <Link to="/planner" className="rounded-lg px-4 py-3 text-ink-soft no-underline" activeProps={{ className: navLinkActiveClass }} onClick={() => setIsMobileMenuOpen(false)}>Meal planner</Link>

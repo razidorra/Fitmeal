@@ -1,17 +1,22 @@
-// Named themes, not an OS-preference toggle — the user picks explicitly on the Account page, so
-// there's no `prefers-color-scheme` fallback here. "dark" is the original look and stays the bare
-// :root default (no attribute); every other theme is applied via a `data-theme` attribute on
-// <html>, matched by its own :root[data-theme="..."] block in styles.css.
-export type Theme = 'dark' | 'light' | 'rose' | 'ocean' | 'forest' | 'slate';
-
-const THEMES: Theme[] = ['dark', 'light', 'rose', 'ocean', 'forest', 'slate'];
+// Named themes, not an OS-preference toggle — the user picks explicitly on the Account page.
+// "dark" is the original look and stays the bare :root default (no attribute).
+const THEMES = ['dark', 'light', 'rose', 'ocean', 'forest', 'slate'] as const;
+export type Theme = typeof THEMES[number];
 const STORAGE_KEY_PREFIX = 'fitmeal-theme';
+
+function isTheme(value: string | null): value is Theme {
+  return THEMES.some((theme) => theme === value);
+}
 
 export function getStoredTheme(userId?: string): Theme {
   if (!userId) return 'dark';
 
-  const stored = localStorage.getItem(`${STORAGE_KEY_PREFIX}:${userId}`);
-  return (THEMES as string[]).includes(stored ?? '') ? (stored as Theme) : 'dark';
+  try {
+    const stored = localStorage.getItem(`${STORAGE_KEY_PREFIX}:${userId}`);
+    return isTheme(stored) ? stored : 'dark';
+  } catch {
+    return 'dark';
+  }
 }
 
 export function applyTheme(theme: Theme) {
@@ -23,11 +28,19 @@ export function applyTheme(theme: Theme) {
 }
 
 export function setTheme(userId: string, theme: Theme) {
-  localStorage.setItem(`${STORAGE_KEY_PREFIX}:${userId}`, theme);
+  try {
+    localStorage.setItem(`${STORAGE_KEY_PREFIX}:${userId}`, theme);
+  } catch {
+    // The selected theme still applies for this session when storage is blocked or unavailable.
+  }
   applyTheme(theme);
 }
 
 export function clearStoredTheme(userId: string) {
-  localStorage.removeItem(`${STORAGE_KEY_PREFIX}:${userId}`);
+  try {
+    localStorage.removeItem(`${STORAGE_KEY_PREFIX}:${userId}`);
+  } catch {
+    // Applying the default remains useful even when browser storage cannot be changed.
+  }
   applyTheme('dark');
 }

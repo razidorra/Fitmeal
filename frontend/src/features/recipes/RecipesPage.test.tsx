@@ -32,10 +32,12 @@ describe('RecipesPage', () => {
 
     const dialog = screen.getByRole('dialog', { name: 'Recipe details require an account.' });
     expect(dialog).toBeInTheDocument();
+    expect(document.body).toHaveStyle({ overflow: 'hidden' });
     await waitFor(() => expect(screen.getByRole('button', { name: 'Close' })).toHaveFocus());
 
     await user.keyboard('{Escape}');
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(document.body).not.toHaveStyle({ overflow: 'hidden' });
     expect(recipeCard).toHaveFocus();
   });
 });
