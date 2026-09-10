@@ -4,6 +4,7 @@ import type { Express } from 'express';
 import { clearTestDb, connectTestDb, disconnectTestDb } from '../../test/db.js';
 import { MealPlan } from '../meal-plan/meal-plan.model.js';
 import { Checkin } from '../progress/checkin.model.js';
+import { Review } from '../review/review.model.js';
 
 // Stands in for real Clerk auth: whichever userId is set here is what requireUserId() sees for
 // the next request, so tests can switch "who's signed in" without a real Clerk JWT.
@@ -121,12 +122,14 @@ describe('DELETE /api/profiles/:profileId', () => {
     const profileId = created.body._id;
     await request(app).post(`/api/meal-plans/generate/${profileId}`).send({ date: '2026-09-03' }).expect(201);
     await request(app).post('/api/progress').send({ profileId, weightKg: 60 }).expect(201);
+    await request(app).post('/api/reviews').send({ rating: 5, comment: 'A helpful and practical daily plan.' }).expect(200);
 
     await request(app).delete(`/api/profiles/${profileId}`).expect(204);
 
     expect((await request(app).get('/api/profiles/latest').expect(200)).body).toBeNull();
     expect(await MealPlan.countDocuments({ profileId })).toBe(0);
     expect(await Checkin.countDocuments({ profileId })).toBe(0);
+    expect(await Review.countDocuments({ profileId })).toBe(0);
   });
 
   it('does not let another account delete the data', async () => {

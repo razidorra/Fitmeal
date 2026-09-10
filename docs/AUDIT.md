@@ -4,6 +4,21 @@ Entries are chronological records of the implementation as it existed on each da
 may mention dependencies or constraints that were intentionally replaced by later work; the current
 contract lives in [SPEC.md](SPEC.md).
 
+## 2026-09-10 — Profile-verified, single-review publishing
+
+### Implemented
+
+- Restricted review creation and editing to signed-in Clerk members who already have a saved FitMeal profile.
+- Removed editable reviewer identity fields; the backend now derives the public name from the owned profile, preventing name spoofing.
+- Enforced one review per Clerk account and profile. Repeated submissions update the existing review instead of creating duplicates.
+- Limited the public feed and aggregate score to profile-verified reviews, leaving any legacy anonymous records stored but unpublished.
+- Added the signed-in member's review endpoint, update-aware form state, profile-name synchronization, and review deletion when the owning profile is deleted.
+
+### Verification
+
+- Backend route tests cover missing authentication/profile, server-derived names, duplicate prevention, updates, and rejected spoofed names.
+- Frontend tests cover profile-derived identity and authenticated review submission.
+
 ## 2026-09-09 — Daily variety, motion, and community feedback
 
 ### Implemented

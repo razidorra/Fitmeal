@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { Profile } from './profile.model.js';
 import { MealPlan } from '../meal-plan/meal-plan.model.js';
 import { Checkin } from '../progress/checkin.model.js';
+import { Review } from '../review/review.model.js';
 import { requireUserId } from '../../shared/auth.js';
 import { trimmedText } from '../../shared/validation.js';
 
@@ -57,6 +58,7 @@ profileRouter.patch('/:profileId', async (req, res, next) => {
     const data = profileSchema.partial().refine((value) => Object.keys(value).length > 0, 'Provide at least one profile field.').parse(req.body);
     profile.set(data);
     await profile.save();
+    await Review.updateOne({ profileId: profile._id }, { name: profile.name });
     res.json(profile);
   } catch (error) {
     next(error);
@@ -76,6 +78,7 @@ profileRouter.delete('/:profileId', async (req, res, next) => {
     await Promise.all([
       MealPlan.deleteMany({ profileId: profile._id }),
       Checkin.deleteMany({ profileId: profile._id }),
+      Review.deleteMany({ profileId: profile._id }),
     ]);
     await profile.deleteOne();
     res.status(204).send();

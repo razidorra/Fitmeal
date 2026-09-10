@@ -47,6 +47,7 @@ export const api = {
   confirmMeal: (token: string | null, planId: string, time: string) => request<MealPlan>(token, `/meal-plans/${planId}/meals/${encodeURIComponent(time)}/confirm`, { method: 'PATCH' }),
   getReview: (token: string | null, profileId: string) => request<ProgressReview>(token, `/progress/${profileId}/review`, { method: 'POST' }),
   getCustomerReviews: () => request<ReviewSummary>(null, '/reviews'),
-  addCustomerReview: (review: { name: string; email?: string; rating: number; comment: string }) => request<CustomerReview>(null, '/reviews', { method: 'POST', body: JSON.stringify(review) }),
+  getMyCustomerReview: (token: string | null) => request<CustomerReview | null>(token, '/reviews/mine'),
+  saveCustomerReview: (token: string | null, review: { rating: number; comment: string }) => request<CustomerReview>(token, '/reviews', { method: 'POST', body: JSON.stringify(review) }),
   sendContactMessage: (contact: { senderName: string; senderEmail: string; topic: string; message: string }) => request<{ message: string }>(null, '/contact', { method: 'POST', body: JSON.stringify(contact) }),
 };

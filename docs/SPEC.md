@@ -3,7 +3,7 @@
 ## Document status
 
 - Project stage: final feature-complete candidate
-- Last reviewed against source: 2026-09-09
+- Last reviewed against source: 2026-09-10
 - Implementation status: complete for the scope below
 - Release status: the public GitHub Pages URL is online; redeploying the current source, connecting the production API/auth stack, and completing the production smoke test are still pending
 
@@ -36,7 +36,7 @@ Recipe cards prompt signed-out visitors to sign in before opening the details mo
 5. Open ingredients, steps, health context, and nutrition in a modal for an allowed recipe-card interaction.
 6. Preserve the recipe detail route for direct links and unknown-recipe handling.
 7. Provide accessible mobile navigation with Escape-key dismissal/focus restoration and page-level error recovery.
-8. Provide a public Reviews & Contact page where visitors can submit a one-to-five-star rating, name, public comment, and an optional private contact email; show aggregate ratings and recent reviews without exposing email addresses.
+8. Provide a public Reviews & Contact page where anyone can read aggregate ratings and recent reviews, but only a signed-in member with a saved FitMeal profile can publish or update one review. Derive the public name from that profile and enforce one review per Clerk account/profile.
 9. Offer a private contact form with a protected recipient, topic selection, name, reply address, and message fields as an alternative to publishing a review; send through server-side SMTP without shipping the recipient address or credentials in the frontend bundle, and rate-limit public review and contact submissions.
 
 ### Authentication and ownership
@@ -164,7 +164,7 @@ During local development, Vite proxies `/api` to `http://localhost:4000`. A sepa
 | `GET` | `/api/profiles/latest` | `200` profile or `null` |
 | `POST` | `/api/profiles` | `201` created profile |
 | `PATCH` | `/api/profiles/:profileId` | `200` updated profile |
-| `DELETE` | `/api/profiles/:profileId` | `204`; deletes the owned profile and dependent plans/check-ins |
+| `DELETE` | `/api/profiles/:profileId` | `204`; deletes the owned profile and dependent plans/check-ins/review |
 | `POST` | `/api/meal-plans/generate/:profileId` | `200` existing or `201` created/replaced plan |
 | `GET` | `/api/meal-plans/latest/:profileId` | `200` plan or `null` |
 | `GET` | `/api/meal-plans/:profileId/history?days=14` | `200` plan array |
@@ -173,6 +173,10 @@ During local development, Vite proxies `/api` to `http://localhost:4000`. A sepa
 | `GET` | `/api/progress/:profileId` | `200` check-in array |
 | `POST` | `/api/progress` | `201` created check-in |
 | `POST` | `/api/progress/:profileId/review` | `200` stats and summary |
+| `GET` | `/api/reviews` | `200` public review summary and recent reviews |
+| `GET` | `/api/reviews/mine` | `200` signed-in member's review or `null` |
+| `POST` | `/api/reviews` | `200` creates or updates the signed-in profile's single review |
+| `POST` | `/api/contact` | `202` sends a private contact email when SMTP is configured |
 | `POST` | `/api/assistant/chat` | `200` live or labelled fallback reply |
 
 Protected endpoints return `401` for no session and `503` when backend Clerk configuration is absent. Validation failures are JSON errors, and ownership misses return `404`.

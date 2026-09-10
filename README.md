@@ -218,7 +218,7 @@ Without those variables the authenticated project is reported as skipped; the pu
 
 ## API routes
 
-All routes except health require a valid Clerk session. Resource routes also verify ownership; requests for another user's profile or related records return `404`.
+Profiles, plans, progress, personal reviews, and the assistant require a valid Clerk session. The health check, public review feed, and contact form remain public. Resource routes verify ownership; requests for another user's profile or related records return `404`.
 
 | Method | Route | Purpose |
 | --- | --- | --- |
@@ -226,7 +226,7 @@ All routes except health require a valid Clerk session. Resource routes also ver
 | `GET` | `/api/profiles/latest` | Read the signed-in user's latest profile |
 | `POST` | `/api/profiles` | Create a profile |
 | `PATCH` | `/api/profiles/:profileId` | Update an owned profile |
-| `DELETE` | `/api/profiles/:profileId` | Delete an owned profile and its plans/check-ins |
+| `DELETE` | `/api/profiles/:profileId` | Delete an owned profile and its plans/check-ins/review |
 | `POST` | `/api/meal-plans/generate/:profileId` | Get/create a dated plan, or regenerate it |
 | `GET` | `/api/meal-plans/latest/:profileId` | Read the most recently created plan |
 | `GET` | `/api/meal-plans/:profileId/history` | Read recent dated plans; `days` defaults to 14 and is capped at 60 |
@@ -235,6 +235,10 @@ All routes except health require a valid Clerk session. Resource routes also ver
 | `GET` | `/api/progress/:profileId` | Read weight check-ins |
 | `POST` | `/api/progress` | Add a weight check-in |
 | `POST` | `/api/progress/:profileId/review` | Build a rule-based progress review |
+| `GET` | `/api/reviews` | Read aggregate ratings and recent public reviews |
+| `GET` | `/api/reviews/mine` | Read the signed-in profile's review |
+| `POST` | `/api/reviews` | Create or update the signed-in profile's single review |
+| `POST` | `/api/contact` | Send a private message through configured SMTP |
 | `POST` | `/api/assistant/chat` | Ask the Groq-backed assistant, with local fallback |
 
 The API applies Helmet security headers, a 64 KB JSON-body limit, a general request limit, and a stricter assistant-specific limit. Production accepts only origins listed in `CORS_ORIGINS`. Validation errors return `400`, duplicate records return `409`, oversized bodies return `413`, rate limits return `429`, and unexpected failures are logged server-side while clients receive a generic `500` response.
@@ -242,10 +246,10 @@ The API applies Helmet security headers, a 64 KB JSON-body limit, a general requ
 ## Privacy and data deletion
 
 - Clerk manages authentication identity and sessions. FitMeal stores the Clerk user ID on its own profile only so API ownership can be enforced.
-- MongoDB stores the nutrition profile, generated meal plans, meal confirmations/replacements, and weight check-ins. Other signed-in accounts receive `404` instead of access to those records.
+- MongoDB stores the nutrition profile, generated meal plans, meal confirmations/replacements, weight check-ins, and the profile's single public review. Other signed-in accounts receive `404` instead of access to private records.
 - Theme preference is stored locally in the browser for the current Clerk user.
 - Assistant messages are sent to Groq only when the optional live assistant is enabled; FitMeal does not persist chat history in MongoDB.
-- Under **Account → Privacy and data**, **Delete my FitMeal data** requires a second confirmation and removes the signed-in user’s profile, plans, check-ins, and local theme preference. It leaves the Clerk sign-in identity active because Clerk account deletion is managed separately.
+- Under **Account → Privacy and data**, **Delete my FitMeal data** requires a second confirmation and removes the signed-in user’s profile, plans, check-ins, review, and local theme preference. It leaves the Clerk sign-in identity active because Clerk account deletion is managed separately.
 
 Do not enter medical records or other sensitive health information. FitMeal is an educational planning project, not a medical service.
 
