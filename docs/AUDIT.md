@@ -4,6 +4,23 @@ Entries are chronological records of the implementation as it existed on each da
 may mention dependencies or constraints that were intentionally replaced by later work; the current
 contract lives in [SPEC.md](SPEC.md).
 
+## 2026-09-09 — Daily variety, motion, and community feedback
+
+### Implemented
+
+- Made the open Meal Planner detect local midnight, tab focus, and visibility changes so it automatically loads the new dated menu without requiring a reload.
+- Added an accessible, animated “How it works” modal and distinct motion treatments for lose, maintain, and gain goal cards, including reduced-motion support.
+- Added a public Reviews & Contact page with one-to-five-star ratings, comments, aggregate results, recent community reviews, and a private contact form that sends through server-side SMTP without exposing the recipient address or mail credentials in the frontend bundle.
+- Added validated, rate-limited review API routes and MongoDB persistence. Reviewer email addresses are optional, stored only when supplied for follow-up, and excluded from every public API response.
+- Added frontend, backend, and browser coverage for review submission, privacy, averages, navigation, and the interactive product demo.
+
+### Verification
+
+- `npm run build` passes for both workspaces.
+- Frontend and backend test suites pass, including the new review privacy and submission cases.
+- `npm run test:e2e -- --project=public-chromium` covers the Reviews route and interactive demo.
+- `git diff --check` reports no whitespace errors.
+
 ## 2026-09-08 — Senior reliability and accessibility review
 
 ### Implemented

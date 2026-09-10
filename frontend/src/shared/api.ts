@@ -1,4 +1,4 @@
-import type { ChatMessage, Checkin, MealPlan, Profile, ProgressReview } from './types';
+import type { ChatMessage, Checkin, CustomerReview, MealPlan, Profile, ProgressReview, ReviewSummary } from './types';
 
 export function getApiBaseUrl(configuredUrl: string | undefined = import.meta.env.VITE_API_URL): string {
   return (configuredUrl?.trim() || '/api').replace(/\/$/, '');
@@ -46,4 +46,7 @@ export const api = {
   customizeMeal: (token: string | null, planId: string, time: string, description: string) => request<MealPlan>(token, `/meal-plans/${planId}/meals/${encodeURIComponent(time)}`, { method: 'POST', body: JSON.stringify({ description }) }),
   confirmMeal: (token: string | null, planId: string, time: string) => request<MealPlan>(token, `/meal-plans/${planId}/meals/${encodeURIComponent(time)}/confirm`, { method: 'PATCH' }),
   getReview: (token: string | null, profileId: string) => request<ProgressReview>(token, `/progress/${profileId}/review`, { method: 'POST' }),
+  getCustomerReviews: () => request<ReviewSummary>(null, '/reviews'),
+  addCustomerReview: (review: { name: string; email?: string; rating: number; comment: string }) => request<CustomerReview>(null, '/reviews', { method: 'POST', body: JSON.stringify(review) }),
+  sendContactMessage: (contact: { senderName: string; senderEmail: string; topic: string; message: string }) => request<{ message: string }>(null, '/contact', { method: 'POST', body: JSON.stringify(contact) }),
 };

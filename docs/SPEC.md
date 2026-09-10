@@ -3,7 +3,7 @@
 ## Document status
 
 - Project stage: final feature-complete candidate
-- Last reviewed against source: 2026-09-08
+- Last reviewed against source: 2026-09-09
 - Implementation status: complete for the scope below
 - Release status: the public GitHub Pages URL is online; redeploying the current source, connecting the production API/auth stack, and completing the production smoke test are still pending
 
@@ -36,6 +36,8 @@ Recipe cards prompt signed-out visitors to sign in before opening the details mo
 5. Open ingredients, steps, health context, and nutrition in a modal for an allowed recipe-card interaction.
 6. Preserve the recipe detail route for direct links and unknown-recipe handling.
 7. Provide accessible mobile navigation with Escape-key dismissal/focus restoration and page-level error recovery.
+8. Provide a public Reviews & Contact page where visitors can submit a one-to-five-star rating, name, public comment, and an optional private contact email; show aggregate ratings and recent reviews without exposing email addresses.
+9. Offer a private contact form with a protected recipient, topic selection, name, reply address, and message fields as an alternative to publishing a review; send through server-side SMTP without shipping the recipient address or credentials in the frontend bundle, and rate-limit public review and contact submissions.
 
 ### Authentication and ownership
 

@@ -7,6 +7,7 @@ import { ProgressPage } from '../features/progress/ProgressPage';
 import { RecipeDetailsPage } from '../features/recipes/RecipeDetailsPage';
 import { RecipesPage } from '../features/recipes/RecipesPage';
 import { AccountPage } from '../features/account/AccountPage';
+import { ReviewsPage } from '../features/reviews/ReviewsPage';
 import { FloatingAssistant } from '../features/meal-plan/FloatingAssistant';
 import { isClerkConfigured } from '../shared/clerk';
 import { SiteFooter } from '../shared/components/SiteFooter';
@@ -111,6 +112,7 @@ function Layout() {
           <Link to="/recipes" className={navLinkClass} activeProps={{ className: navLinkActiveClass }}>Recipes</Link>
           <Link to="/planner" className={navLinkClass} activeProps={{ className: navLinkActiveClass }}>Meal planner</Link>
           <Link to="/progress" className={navLinkClass} activeProps={{ className: navLinkActiveClass }}>Progress</Link>
+          <Link to="/reviews" className={navLinkClass} activeProps={{ className: navLinkActiveClass }}>Reviews</Link>
         </nav>
         {isClerkConfigured && <div className="ml-auto flex items-center gap-2.5">
           <Show when="signed-out">
@@ -137,6 +139,7 @@ function Layout() {
       <Link to="/recipes" className="rounded-lg px-4 py-3 text-ink-soft no-underline" activeProps={{ className: navLinkActiveClass }} onClick={() => setIsMobileMenuOpen(false)}>Recipes</Link>
       <Link to="/planner" className="rounded-lg px-4 py-3 text-ink-soft no-underline" activeProps={{ className: navLinkActiveClass }} onClick={() => setIsMobileMenuOpen(false)}>Meal planner</Link>
       <Link to="/progress" className="rounded-lg px-4 py-3 text-ink-soft no-underline" activeProps={{ className: navLinkActiveClass }} onClick={() => setIsMobileMenuOpen(false)}>Progress</Link>
+      <Link to="/reviews" className="rounded-lg px-4 py-3 text-ink-soft no-underline" activeProps={{ className: navLinkActiveClass }} onClick={() => setIsMobileMenuOpen(false)}>Reviews</Link>
       {isClerkConfigured && <MobileAuthMenu onNavigate={() => setIsMobileMenuOpen(false)} />}
     </nav>}
     <main className="max-w-320 mx-auto pt-16 max-[720px]:pt-10 px-[max(4vw,32px)] max-[720px]:px-5 pb-0 overflow-x-clip">
@@ -154,10 +157,11 @@ const recipeDetailsRoute = createRoute({ getParentRoute: () => rootRoute, path: 
 const plannerRoute = createRoute({ getParentRoute: () => rootRoute, path: '/planner', component: MealPlannerPage });
 const progressRoute = createRoute({ getParentRoute: () => rootRoute, path: '/progress', component: ProgressPage });
 const accountRoute = createRoute({ getParentRoute: () => rootRoute, path: '/account', component: AccountPage });
+const reviewsRoute = createRoute({ getParentRoute: () => rootRoute, path: '/reviews', component: ReviewsPage });
 // import.meta.env.BASE_URL mirrors vite.config.ts's `base` — "/" on root hosts and the configured
 // subpath on hosts such as GitHub Pages.
 export const router = createRouter({
-  routeTree: rootRoute.addChildren([homeRoute, recipesRoute, recipeDetailsRoute, plannerRoute, progressRoute, accountRoute]),
+  routeTree: rootRoute.addChildren([homeRoute, recipesRoute, recipeDetailsRoute, plannerRoute, progressRoute, accountRoute, reviewsRoute]),
   basepath: import.meta.env.BASE_URL,
 });
 declare module '@tanstack/react-router' { interface Register { router: typeof router } }

@@ -30,6 +30,7 @@ The static service includes a `/* → /index.html` rewrite so TanStack Router de
    - A MongoDB Atlas connection string and database user.
    - A Clerk application with publishable and secret keys.
    - Optionally, a Groq API key for live assistant answers.
+   - SMTP credentials for the contact form. Gmail users should create an App Password rather than using their normal account password.
 
 Do not commit any of these values.
 
@@ -53,6 +54,12 @@ Set these on `fitmeal-api`:
 | `CLERK_SECRET_KEY` | Yes | Matching Clerk secret key |
 | `CORS_ORIGINS` | Yes | Comma-separated frontend origins, without paths or trailing slashes |
 | `GROQ_API_KEY` | No | Groq key for live assistant responses |
+| `SMTP_HOST` | Yes for contact mail | `smtp.gmail.com` for Gmail |
+| `SMTP_PORT` | Yes for contact mail | `465` for secure Gmail SMTP |
+| `SMTP_SECURE` | Yes for contact mail | `true` with port 465 |
+| `SMTP_USER` | Yes for contact mail | Sending mailbox address |
+| `SMTP_PASS` | Yes for contact mail | Provider-issued SMTP/App Password |
+| `CONTACT_TO_EMAIL` | Yes for contact mail | Private inbox that receives website messages |
 
 `PORT=4000` and `GROQ_MODEL=openai/gpt-oss-20b` are already declared by the Blueprint.
 
@@ -121,6 +128,7 @@ Run this checklist on the deployed frontend:
 - [ ] A weight check-in can be saved and reviewed.
 - [ ] All six themes apply and persist after reload.
 - [ ] The floating and in-planner assistant both respond with a valid Groq key.
+- [ ] The Reviews contact form sends a test message to `CONTACT_TO_EMAIL` and shows its success state.
 - [ ] Removing/invalidating the Groq key produces labelled fallback guidance without breaking other features.
 - [ ] Another signed-in account cannot read the first account's data.
 - [ ] Account data deletion requires confirmation, removes the profile/plans/check-ins, and still prevents cross-account deletion.
@@ -179,7 +187,7 @@ Application data is stored in MongoDB, not on Render's local filesystem. Render 
 
 ### Secrets and logs
 
-- Keep `CLERK_SECRET_KEY`, `MONGODB_URI`, and `GROQ_API_KEY` in the API service only.
+- Keep `CLERK_SECRET_KEY`, `MONGODB_URI`, `GROQ_API_KEY`, `SMTP_PASS`, and `CONTACT_TO_EMAIL` in the API service only.
 - Treat `VITE_*` values as public because they are compiled into browser assets.
 - Rotate a credential immediately if it appears in git, build output, screenshots, or logs.
 - Do not log request authorization headers or full connection strings.

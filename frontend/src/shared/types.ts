@@ -14,3 +14,5 @@ export interface ProgressReview {
   stats: { goal: Goal; firstWeight: number; latestWeight: number; totalChangeKg: number; weeklyRateKg: number | null; checkinCount: number; onTrack: boolean | null; loggedMealCount: number; confirmedMealCount: number; changedMealCount: number };
   summary: string;
 }
+export interface CustomerReview { _id: string; name: string; rating: number; comment: string; createdAt: string; }
+export interface ReviewSummary { reviews: CustomerReview[]; averageRating: number; total: number; }

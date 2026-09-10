@@ -24,6 +24,7 @@ export function MealPlannerPage() {
 
 function MealPlannerContent() {
   const { isLoaded, isSignedIn, getToken } = useAuth();
+  const [currentDate, setCurrentDate] = useState(getLocalDateString);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [plan, setPlan] = useState<MealPlan | null>(null);
   const [history, setHistory] = useState<MealPlan[]>([]);
@@ -34,6 +35,35 @@ function MealPlannerContent() {
   const [errorMessage, setErrorMessage] = useState('');
   const [profileUpdatedNotice, setProfileUpdatedNotice] = useState(false);
   const [showGuestPrompt, setShowGuestPrompt] = useState(false);
+
+  useEffect(() => {
+    let midnightTimer: number;
+
+    function syncCurrentDate() {
+      setCurrentDate(getLocalDateString());
+    }
+
+    function scheduleNextDay() {
+      const now = new Date();
+      const nextMidnight = new Date(now);
+      nextMidnight.setHours(24, 0, 0, 0);
+
+      midnightTimer = window.setTimeout(() => {
+        syncCurrentDate();
+        scheduleNextDay();
+      }, nextMidnight.getTime() - now.getTime() + 100);
+    }
+
+    scheduleNextDay();
+    window.addEventListener('focus', syncCurrentDate);
+    document.addEventListener('visibilitychange', syncCurrentDate);
+
+    return () => {
+      window.clearTimeout(midnightTimer);
+      window.removeEventListener('focus', syncCurrentDate);
+      document.removeEventListener('visibilitychange', syncCurrentDate);
+    };
+  }, []);
 
   useEffect(() => {
     if (!isLoaded) return;
@@ -51,7 +81,7 @@ function MealPlannerContent() {
 
         if (savedProfile) {
           const [todayPlan, recentHistory] = await Promise.all([
-            api.generatePlan(token, savedProfile._id, getLocalDateString()),
+            api.generatePlan(token, savedProfile._id, currentDate),
             api.getPlanHistory(token, savedProfile._id),
           ]);
           setPlan(todayPlan);
@@ -65,7 +95,7 @@ function MealPlannerContent() {
     }
 
     void loadPlanner();
-  }, [isLoaded, isSignedIn, getToken]);
+  }, [isLoaded, isSignedIn, getToken, currentDate]);
 
   async function refreshHistory(token: string | null, profileId: string) {
     try {
@@ -84,7 +114,7 @@ function MealPlannerContent() {
       const savedProfile = await api.saveProfile(token, newProfile);
       setProfile(savedProfile);
       announceProfileName(savedProfile.name);
-      setPlan(await api.generatePlan(token, savedProfile._id, getLocalDateString()));
+      setPlan(await api.generatePlan(token, savedProfile._id, currentDate));
       void refreshHistory(token, savedProfile._id);
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Could not save your profile.');
@@ -122,7 +152,7 @@ function MealPlannerContent() {
 
     try {
       const token = await getToken();
-      setPlan(await api.generatePlan(token, profile._id, getLocalDateString(), true));
+      setPlan(await api.generatePlan(token, profile._id, currentDate, true));
       void refreshHistory(token, profile._id);
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Could not generate a meal plan.');
@@ -176,9 +206,9 @@ function MealPlannerContent() {
   return <>
     <section className="mb-9 grid grid-cols-[1fr_auto] items-end gap-10 max-[760px]:grid-cols-1 max-[760px]:gap-6">
       <div>
-        <span className="inline-flex rounded-full border border-line bg-badge px-3.5 py-2 font-sans text-[12px] font-semibold uppercase tracking-[.1em] text-accent">Today's plan · {formatDisplayDate(plan?.date ?? getLocalDateString())}</span>
+        <span className="inline-flex rounded-full border border-line bg-badge px-3.5 py-2 font-sans text-[12px] font-semibold uppercase tracking-[.1em] text-accent">Today's plan · {formatDisplayDate(plan?.date ?? currentDate)}</span>
         <h1 className="max-w-190 text-balance">Your food, mapped out.</h1>
-        <p className="mb-0 max-w-155 text-lg leading-[1.6] text-ink-soft">A practical daily structure built around your {goalLabels[profile.goal].toLowerCase()} goal. Follow it closely or adapt meals as your day changes.</p>
+        <p className="mb-0 max-w-155 text-lg leading-[1.6] text-ink-soft">A practical daily structure built around your {goalLabels[profile.goal].toLowerCase()} goal, with fresh meal suggestions every day. Follow it closely or adapt meals as your day changes.</p>
       </div>
       <div className="flex gap-2.5 max-[480px]:grid max-[480px]:grid-cols-2">
         <button type="button" onClick={handleGeneratePlan} disabled={isGenerating} className="rounded-full px-5 py-2.75 shadow-[0_8px_22px_rgba(0,0,0,.14)]">{isGenerating ? 'Creating…' : 'Refresh plan'}</button>

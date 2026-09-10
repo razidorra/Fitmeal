@@ -16,11 +16,21 @@ export const env = {
   clerkSecretKey: process.env.CLERK_SECRET_KEY,
   groqApiKey: process.env.GROQ_API_KEY ?? '',
   groqModel: process.env.GROQ_MODEL ?? 'openai/gpt-oss-20b',
+  smtpHost: process.env.SMTP_HOST ?? '',
+  smtpPort: Number(process.env.SMTP_PORT ?? 465),
+  smtpSecure: (process.env.SMTP_SECURE ?? 'true') === 'true',
+  smtpUser: process.env.SMTP_USER ?? '',
+  smtpPass: process.env.SMTP_PASS ?? '',
+  contactToEmail: process.env.CONTACT_TO_EMAIL ?? '',
   corsOrigins: (process.env.CORS_ORIGINS ?? '').split(',').map((origin) => origin.trim()).filter(Boolean),
 };
 
 if (!Number.isInteger(env.port) || env.port < 1 || env.port > 65_535) {
   throw new Error('PORT must be an integer between 1 and 65535.');
+}
+
+if (!Number.isInteger(env.smtpPort) || env.smtpPort < 1 || env.smtpPort > 65_535) {
+  throw new Error('SMTP_PORT must be an integer between 1 and 65535.');
 }
 
 if (env.nodeEnv === 'production') {

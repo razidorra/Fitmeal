@@ -12,6 +12,11 @@
    utility — keyframes aren't utility material, so this stays plain CSS. */
 @keyframes recipe-modal-fade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes mobile-menu-enter { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fitmeal-demo-step { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes goal-icon-down { 0%, 100% { transform: translateY(-3px); } 50% { transform: translateY(4px); } }
+@keyframes goal-icon-balance { 0%, 100% { transform: scaleX(.8); } 50% { transform: scaleX(1.12); } }
+@keyframes goal-icon-up { 0%, 100% { transform: translateY(4px); } 50% { transform: translateY(-4px); } }
+@keyframes goal-bar-pulse { 0%, 100% { transform: scaleY(.72); opacity: .55; } 50% { transform: scaleY(1); opacity: 1; } }
 
 /* Color tokens, mapped onto the existing --bg-..., --text-..., --accent (etc) custom properties
    below instead of holding literal values themselves. `inline` is required for that: it makes each

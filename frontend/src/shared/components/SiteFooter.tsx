@@ -17,6 +17,7 @@ export function SiteFooter() {
         <Link to="/recipes" className={footerLinkClass}>Recipes</Link>
         <Link to="/planner" className={footerLinkClass}>Meal planner</Link>
         <Link to="/progress" className={footerLinkClass}>Progress</Link>
+        <Link to="/reviews" className={footerLinkClass}>Reviews & contact</Link>
       </nav>
       <nav className="grid content-start gap-3" aria-label="Learn about FitMeal">
         <span className="mb-1 text-[11px] font-bold uppercase tracking-[.12em] text-accent">Learn</span>

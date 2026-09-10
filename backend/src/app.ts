@@ -9,6 +9,8 @@ import { assistantRouter } from './features/assistant/assistant.routes.js';
 import { mealPlanRouter } from './features/meal-plan/meal-plan.routes.js';
 import { profileRouter } from './features/profile/profile.routes.js';
 import { progressRouter } from './features/progress/progress.routes.js';
+import { reviewRouter } from './features/review/review.routes.js';
+import { contactRouter } from './features/contact/contact.routes.js';
 import { env } from './config/env.js';
 
 export const app = express();
@@ -47,6 +49,22 @@ const assistantLimiter = rateLimit({
   message: { message: 'Assistant request limit reached. Please try again later.' },
 });
 
+const reviewLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 10,
+  standardHeaders: 'draft-8',
+  legacyHeaders: false,
+  message: { message: 'Too many reviews submitted. Please try again later.' },
+});
+
+const contactLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 5,
+  standardHeaders: 'draft-8',
+  legacyHeaders: false,
+  message: { message: 'Too many messages submitted. Please try again later.' },
+});
+
 app.use('/api', apiLimiter);
 if (env.clerkPublishableKey && env.clerkSecretKey) app.use(clerkMiddleware());
 
@@ -61,6 +79,9 @@ app.get('/api/health', (_req, res) => {
 app.use('/api/profiles', profileRouter);
 app.use('/api/meal-plans', mealPlanRouter);
 app.use('/api/progress', progressRouter);
+app.post('/api/reviews', reviewLimiter);
+app.use('/api/reviews', reviewRouter);
+app.use('/api/contact', contactLimiter, contactRouter);
 app.use('/api/assistant', assistantLimiter, assistantRouter);
 
 app.use('/api', (_req, res) => {

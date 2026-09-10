@@ -1,4 +1,4 @@
-import { useState } from 'react'; import { Link } from '@tanstack/react-router'; import { Reveal } from '../../shared/components/Reveal'; import { resolveImage } from '../../shared/assets';
+import { useCallback, useState } from 'react'; import { Link } from '@tanstack/react-router'; import { Reveal } from '../../shared/components/Reveal'; import { resolveImage } from '../../shared/assets'; import { HowItWorksModal } from './HowItWorksModal';
 
 // The phone mockup is deliberately theme-independent (always dark, like a real phone screenshot)
 // except for its `small` text and progress-bar fill, which intentionally follow the site accent —
@@ -50,6 +50,8 @@ function FaqItem({ question, answer, isOpen, onOpen }: { question: string; answe
 export function HomePage() {
   const [openQuestion, setOpenQuestion] = useState<string | null>(null);
   const [showAllQuestions, setShowAllQuestions] = useState(false);
+  const [isDemoOpen, setIsDemoOpen] = useState(false);
+  const closeDemo = useCallback(() => setIsDemoOpen(false), []);
   const goals = [['↓', 'Lose weight', 'A modest calorie deficit helps you make steady progress while prioritising protein, fibre and satisfying meals.'], ['=', 'Maintain weight', 'Keep your energy stable with balanced meals that support your routine, training and everyday life.'], ['↑', 'Gain weight', 'Use a gentle calorie surplus and protein-rich meals to support healthy muscle and weight gain.']];
   const steps = [['01', 'Tell us your goal', 'Add your height, weight, activity level and whether you want to lose, maintain or gain weight.'], ['02', 'Get your meal targets', 'FitMeal calculates a daily calorie and macro starting point, then creates a balanced meal outline.'], ['03', 'Check in and adjust', 'Log your weight over time, notice the trend, and refresh your plan when your needs change.']];
   const faqs = [
@@ -71,10 +73,10 @@ export function HomePage() {
         <p className="max-w-142.5 text-lg leading-[1.65] text-ink-soft">FitMeal turns your goals into a simple daily meal plan, flexible recipe ideas, and progress insights you can use in real life.</p>
         <div className="mt-7 mb-9 flex items-center gap-5 max-[480px]:items-stretch max-[480px]:flex-col">
           <Link className="primary shadow-[0_10px_30px_rgba(0,0,0,.2)]" to="/planner">Create my meal plan <span aria-hidden="true" className="ml-2">→</span></Link>
-          <a className="flex items-center gap-2.5 text-ink no-underline font-semibold" href="#how-it-works">
-            <span className="grid place-items-center border border-line-strong rounded-full w-10 h-10 text-[10px]">▶</span>
+          <button type="button" onClick={() => setIsDemoOpen(true)} className="flex items-center gap-2.5 border-0 bg-transparent p-0 text-ink font-semibold hover:bg-transparent hover:text-accent" aria-haspopup="dialog">
+            <span className="grid place-items-center border border-line-strong rounded-full w-10 h-10 text-[10px]" aria-hidden="true">▶</span>
             See how it works
-          </a>
+          </button>
         </div>
         <div className="grid max-w-142.5 grid-cols-3 gap-4 border-t border-line pt-5">
           {[['4', 'daily meals'], ['6', 'visual themes'], ['100%', 'flexible']].map(([value, label]) => <div key={label}>
@@ -113,10 +115,16 @@ export function HomePage() {
 
     <section className="grid grid-cols-3 max-[900px]:grid-cols-1 gap-4.5 mt-9.5">
       {goals.map(([symbol, title, text], index) => <Reveal key={title} delay={index * 110}>
-        <article className="h-full rounded-2xl p-7.5 border border-line bg-surface shadow-[0_12px_35px_rgba(0,0,0,.08)]">
-          <span className="grid place-items-center w-12 h-12 rounded-xl border border-line-strong bg-surface-alt text-accent font-display text-[30px]">{symbol}</span>
+        <article tabIndex={0} className="group relative h-full overflow-hidden rounded-2xl border border-line bg-surface p-7.5 shadow-[0_12px_35px_rgba(0,0,0,.08)] transition-all duration-300 hover:-translate-y-1.5 hover:border-accent hover:shadow-[0_20px_45px_rgba(0,0,0,.14)] focus-visible:-translate-y-1.5 focus-visible:border-accent focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-accent">
+          <span aria-hidden="true" className={`grid h-12 w-12 place-items-center rounded-xl border border-line-strong bg-surface-alt font-display text-[30px] text-accent motion-reduce:animate-none ${index === 0 ? 'animate-[goal-icon-down_2.2s_ease-in-out_infinite]' : index === 1 ? 'animate-[goal-icon-balance_2.2s_ease-in-out_infinite]' : 'animate-[goal-icon-up_2.2s_ease-in-out_infinite]'}`}>{symbol}</span>
           <h3 className="font-display font-semibold text-2xl mt-6.5 mb-2.5">{title}</h3>
           <p className="text-ink-muted leading-[1.55] m-0">{text}</p>
+          <div aria-hidden="true" className="mt-6 flex h-8 items-end gap-1.5 border-b border-line px-1 opacity-65 transition-opacity duration-300 group-hover:opacity-100 group-focus:opacity-100">
+            {[0, 1, 2, 3, 4].map((bar) => {
+              const heights = index === 0 ? [28, 76, 64, 48, 36] : index === 1 ? [52, 58, 50, 56, 53] : [30, 42, 55, 68, 82];
+              return <span key={bar} className="flex-1 origin-bottom rounded-t-sm bg-accent motion-reduce:animate-none animate-[goal-bar-pulse_2.2s_ease-in-out_infinite]" style={{ height: `${heights[bar]}%`, animationDelay: `${bar * 110}ms` }} />;
+            })}
+          </div>
         </article>
       </Reveal>)}
     </section>
@@ -188,5 +196,6 @@ export function HomePage() {
       <p className="text-lg text-ink-soft mb-6.75">Create your profile once and get a practical meal plan for today.</p>
       <Link className="primary" to="/planner">Build my plan <span aria-hidden="true" className="ml-2">→</span></Link>
     </Reveal>
+    {isDemoOpen && <HowItWorksModal onClose={closeDemo} />}
   </>;
 }
