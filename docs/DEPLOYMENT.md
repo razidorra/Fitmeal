@@ -158,7 +158,7 @@ To turn it on:
 
 1. In the repository, confirm **Settings → Pages → Source** is set to **GitHub Actions**. The public frontend already uses this deployment path.
 2. Deploy the API first (steps 1–3 above) and note its `https://.../api` URL.
-3. Open **Settings → Secrets and variables → Actions → Variables** and add:
+3. Open **Settings → Secrets and variables → Actions → Variables** and add the values below. The workflow also accepts repository secrets with the same names when they are already stored under **Secrets**:
 
    | Variable | Value |
    | --- | --- |

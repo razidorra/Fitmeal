@@ -35,8 +35,8 @@ jobs:
 
       - name: Validate production configuration
         env:
-          VITE_API_URL: ${{ vars.VITE_API_URL }}
-          VITE_CLERK_PUBLISHABLE_KEY: ${{ vars.VITE_CLERK_PUBLISHABLE_KEY }}
+          VITE_API_URL: ${{ vars.VITE_API_URL || secrets.VITE_API_URL }}
+          VITE_CLERK_PUBLISHABLE_KEY: ${{ vars.VITE_CLERK_PUBLISHABLE_KEY || secrets.VITE_CLERK_PUBLISHABLE_KEY }}
         run: |
           if [[ -z "$VITE_API_URL" || -z "$VITE_CLERK_PUBLISHABLE_KEY" ]]; then
             echo "VITE_API_URL and VITE_CLERK_PUBLISHABLE_KEY must be configured as repository variables."
@@ -54,8 +54,8 @@ jobs:
           # Actions once the backend is deployed (e.g. on Render — see docs/DEPLOYMENT.md).
           # Until VITE_API_URL is set, the deployed site's sign-in/planner/progress/assistant
           # features will fail — public pages (home, recipes) still work.
-          VITE_API_URL: ${{ vars.VITE_API_URL }}
-          VITE_CLERK_PUBLISHABLE_KEY: ${{ vars.VITE_CLERK_PUBLISHABLE_KEY }}
+          VITE_API_URL: ${{ vars.VITE_API_URL || secrets.VITE_API_URL }}
+          VITE_CLERK_PUBLISHABLE_KEY: ${{ vars.VITE_CLERK_PUBLISHABLE_KEY || secrets.VITE_CLERK_PUBLISHABLE_KEY }}
         run: npm run build -w frontend
 
       - uses: actions/upload-pages-artifact@v3
